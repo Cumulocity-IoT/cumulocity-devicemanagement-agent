@@ -1,0 +1,64 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.106.0/containers/docker-existing-dockerfile
+/* cSpell:disable */
+{
+	"name": "DebianJessieEnv",
+
+	// Sets the run context to one level up instead of the .devcontainer folder.
+	"context": "..",
+
+	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+	"dockerFile": "Dockerfile",
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"autoDocstring.docstringFormat": "google",
+		"python.pythonPath": "/usr/bin/python3",
+		"python.testing.autoTestDiscoverOnSaveEnabled": true,
+		"python.testing.pytestEnabled": true,
+		"cSpell.enabled": false,
+		"python.linting.pylintEnabled": true,
+		"python.formatting.provider": "autopep8",
+		"python.testing.unittestEnabled": false,
+		"python.testing.nosetestsEnabled": false,
+		"python.envFile": "${workspaceFolder}/.env",
+		"markdown-preview-enhanced.enableScriptExecution": true,
+		"python.testing.pytestArgs": [
+			"--log-cli-level=INFO"
+		]
+	},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-python.python",
+		"njpwerner.autodocstring",
+		"ms-azuretools.vscode-docker",
+		"eamodio.gitlens",
+		"ms-vscode.powershell",
+		"streetsidesoftware.code-spell-checker",
+		"shd101wyy.markdown-preview-enhanced"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Uncomment the next line to run commands after the container is created - for example installing git.
+	//"postCreateCommand": "make init-config",
+
+	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+	"runArgs": [
+		"--cap-add=NET_ADMIN",
+		"--security-opt",
+		"seccomp=unconfined"
+	],
+
+	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-in-docker.
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+		"destination=/mnt/root,type=tmpfs,tmpfs-mode=1770,tmpfs-size=50m"
+	]
+
+	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
+}

@@ -1,0 +1,215 @@
+{
+  "name": "C8Y Python Agent",
+  "type": "c8y_SmartRest2Template",
+  "com_cumulocity_model_smartrest_csv_CsvSmartRestTemplate": {
+    "requestTemplates": [
+      {
+        "api": "MEASUREMENT",
+        "byId": true,
+        "customValues": [
+          {
+            "path": "c8y_CPUTemperature.T.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_CPUTemperature.T.unit",
+            "type": "STRING",
+            "value": "°C"
+          }
+        ],
+        "mandatoryValues": [
+          {
+            "path": "$.type",
+            "type": "STRING",
+            "value": "c8y_CPUTemperature"
+          },
+          {
+            "path": "$.time",
+            "type": "DATE",
+            "value": null
+          }
+        ],
+        "method": "POST",
+        "msgId": "M100",
+        "response": false,
+        "name": "CPU Temperature"
+      },
+      {
+        "api": "MEASUREMENT",
+        "byId": true,
+        "customValues": [
+          {
+            "path": "c8y_CPUUsage.usage.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_CPUUsage.usage.unit",
+            "type": "STRING",
+            "value": "%"
+          }
+        ],
+        "mandatoryValues": [
+          {
+            "path": "$.type",
+            "type": "STRING",
+            "value": "c8y_CPUUsage"
+          },
+          {
+            "path": "$.time",
+            "type": "DATE",
+            "value": null
+          }
+        ],
+        "method": "POST",
+        "msgId": "M101",
+        "response": false,
+        "name": "CPU Usage"
+      },
+      {
+        "api": "MEASUREMENT",
+        "byId": true,
+        "customValues": [
+          {
+            "path": "c8y_NetworkTraffic.uplink.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_NetworkTraffic.uplink.unit",
+            "type": "STRING",
+            "value": "KB"
+          },
+          {
+            "path": "c8y_NetworkTraffic.downlink.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_NetworkTraffic.downlink.unit",
+            "type": "STRING",
+            "value": "KB"
+          }
+        ],
+        "mandatoryValues": [
+          {
+            "path": "$.type",
+            "type": "STRING",
+            "value": "c8y_NetworkTraffic"
+          },
+          {
+            "path": "$.time",
+            "type": "DATE",
+            "value": null
+          }
+        ],
+        "method": "POST",
+        "msgId": "M102",
+        "response": false,
+        "name": "Network Traffic"
+      },
+      {
+        "api": "MEASUREMENT",
+        "byId": true,
+        "customValues": [
+          {
+            "path": "c8y_MemoryUsage.free.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_MemoryUsage.free.unit",
+            "type": "STRING",
+            "value": "KB"
+          },
+          {
+            "path": "c8y_MemoryUsage.used.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_MemoryUsage.used.unit",
+            "type": "STRING",
+            "value": "KB"
+          },
+          {
+            "path": "c8y_MemoryUsage.usedPercent.value",
+            "type": "NUMBER",
+            "value": null
+          },
+          {
+            "path": "c8y_MemoryUsage.usedPercent.unit",
+            "type": "STRING",
+            "value": "%"
+          }
+        ],
+        "mandatoryValues": [
+          {
+            "path": "$.type",
+            "type": "STRING",
+            "value": "c8y_MemoryUsage"
+          },
+          {
+            "path": "$.time",
+            "type": "DATE",
+            "value": null
+          }
+        ],
+        "method": "POST",
+        "msgId": "M103",
+        "response": false,
+        "name": "Memory Usage"
+      },
+      {
+        "api": "INVENTORY",
+        "byId": false,
+        "customValues": [
+          {
+            "path": "c8y_Network.c8y_LAN.ip",
+            "type": "STRING",
+            "value": ""
+          },
+          {
+            "path": "c8y_Network.c8y_LAN.mac",
+            "type": "STRING",
+            "value": ""
+          },
+          {
+            "path": "c8y_Network.c8y_LAN.netmask",
+            "type": "STRING",
+            "value": ""
+          },
+          {
+            "path": "c8y_Network.c8y_LAN.name",
+            "type": "STRING",
+            "value": ""
+          },
+          {
+            "path": "c8y_Network.c8y_LAN.enabled",
+            "type": "UNSIGNED",
+            "value": null
+          }
+        ],
+        "externalIdType": "c8y_Serial",
+        "mandatoryValues": [],
+        "method": "PUT",
+        "msgId": "IU100",
+        "response": false,
+        "name": "Update Network"
+      }
+    ],
+    "responseTemplates": [
+      {
+        "base": "c8y_Message",
+        "condition": "c8y_Message",
+        "msgId": "MSG",
+        "name": "Message",
+        "pattern": [
+          "text"
+        ]
+      }
+    ]
+  },
+  "__externalId": "c8y-python-v0.1"
+}
