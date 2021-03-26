@@ -3,4 +3,3 @@ psutil==5.8.0
 requests==2.25.1
 websocket_client==0.58.0
 setuptools==54.1.2
-python-apt==0.7.8

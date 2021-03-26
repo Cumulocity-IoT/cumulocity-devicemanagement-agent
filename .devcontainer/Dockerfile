@@ -13,6 +13,7 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     python3-wheel \
     python3-stdeb \
 	python3-websocket \
+	python3-apt \
 	python3-all \
     git \
     build-essential \
@@ -47,11 +48,6 @@ RUN curl -O https://packages.microsoft.com/config/debian/10/packages-microsoft-p
     && apt-get update \
     && apt-get install -y powershell \
     && pwsh -c "Install-Module -Name PSc8y -Repository PSGallery -AllowPrerelease -Force"
-
-# Add JFrog cli tool
-WORKDIR /root
-RUN curl -fL https://getcli.jfrog.io | sh \
-    && mv jfrog /usr/bin/
 
 # Configure bash settings
 RUN echo "source /etc/profile.d/bash_completion.sh" >> "/root/.bashrc"
