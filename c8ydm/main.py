@@ -15,7 +15,9 @@ from c8ydm.utils import Configuration
 
 
 def start():
-    path = expanduser('~') + '/.cumulocity'
+    home = expanduser('~')
+    path = pathlib.Path(home + '/.cumulocity')
+    path.mkdir(parents=True, exist_ok=True)
     print(path)
     config = Configuration(path)
     simulated = False

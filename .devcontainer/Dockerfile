@@ -13,7 +13,6 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     python3-wheel \
     python3-stdeb \
 	python3-websocket \
-	python3-apt \
 	python3-all \
     git \
     build-essential \
@@ -56,6 +55,5 @@ RUN echo "source /etc/profile.d/bash_completion.sh" >> "/root/.bashrc"
 COPY ./.devcontainer/custom-files/docker-clean /etc/apt/apt.conf.d/
 
 # # Install requirements (using pip)
-COPY setup.py .
-COPY ./c8ydm ./c8ydm
-RUN pip3 install .
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
