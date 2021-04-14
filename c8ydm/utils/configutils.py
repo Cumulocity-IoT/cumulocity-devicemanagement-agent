@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import configparser
+from shutil import copyfile
 from configparser import NoOptionError, NoSectionError
 
 class Configuration():
@@ -18,7 +19,7 @@ class Configuration():
     self.readFromFile()
 
   def readFromFile(self):
-    self.configuration.read(self.configPath)
+      self.configuration.read(self.configPath)
 
   def getValue(self, category, key):
     try:
@@ -53,6 +54,7 @@ class Configuration():
     return None
 
   def writeCredentials(self, tenant, user, password):
+    #TODO Write this in a secure storage.
     self.configuration.set(self.credentialsCategory, self.tenant, tenant)
     self.configuration.set(self.credentialsCategory, self.user, user)
     self.configuration.set(self.credentialsCategory, self.password, password.replace('%', '%%'))

@@ -3,6 +3,7 @@ ARG DEB_MIRROR=http://ftp.de.debian.org/debian
 
 # Install additional packages.
 ENV DEBIAN_FRONTEND=noninteractive
+ENV container docker
 RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     && apt-get update \
     && apt-get -y install --no-install-recommends \
@@ -54,10 +55,12 @@ RUN echo "source /etc/profile.d/bash_completion.sh" >> "/root/.bashrc"
 # Copy files to override apt-get settings
 COPY ./.devcontainer/custom-files/docker-clean /etc/apt/apt.conf.d/
 
+RUN mkdir $HOME/.cumulocity
+COPY ./config/agent.ini /root/.cumulocity/agent.ini
+
 # # Install requirements (using pip)
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 #COPY setup.py .
-#COPY ./c8ydm ./c8ydm
 #RUN pip3 install .
