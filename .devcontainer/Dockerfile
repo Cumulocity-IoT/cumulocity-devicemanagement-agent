@@ -58,6 +58,6 @@ COPY ./.devcontainer/custom-files/docker-clean /etc/apt/apt.conf.d/
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-COPY setup.py .
-COPY ./c8ydm ./c8ydm
-RUN pip3 install .
+#COPY setup.py .
+#COPY ./c8ydm ./c8ydm
+#RUN pip3 install .

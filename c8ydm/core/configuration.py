@@ -22,7 +22,7 @@ class ConfigurationManager(Listener, Initializer):
             result.append([])
 
         if result[-1] == []:
-          result.pop() # thx iBug's comment
+          result.pop()
         return result
 
     def handleOperation(self, message):

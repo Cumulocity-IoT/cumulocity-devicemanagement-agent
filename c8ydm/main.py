@@ -6,6 +6,7 @@ import signal
 import subprocess
 import sys
 import time
+import pathlib
 from os.path import expanduser
 
 import c8ydm.utils.systemutils as systemutils
@@ -18,10 +19,9 @@ def start():
     home = expanduser('~')
     path = pathlib.Path(home + '/.cumulocity')
     path.mkdir(parents=True, exist_ok=True)
-    print(path)
-    config = Configuration(path)
+    config = Configuration(str(path))
     simulated = False
-    logging.basicConfig(filename=path + '/agent.log', level=logging.DEBUG,
+    logging.basicConfig(filename=path/'agent.log', level=logging.DEBUG,
                         format='%(asctime)s %(threadName)s %(levelname)s %(message)s')
     containerId = None
     serial = None
@@ -45,13 +45,13 @@ def start():
         serial = containerId.strip()
         simulated = True
 
-    startDaemon(path + '/agent.pid')
+    startDaemon(str(path) + '/agent.pid')
     logging.info('Serial %s', serial)
 
     credentials = config.getCredentials()
     logging.debug('Credentials:')
     logging.debug(credentials)
-    agent = Agent(serial, path, config, path + '/agent.pid', simulated)
+    agent = Agent(serial, path, config, str(path) + '/agent.pid', simulated)
 
     if credentials is None:
         logging.info('No credentials found. Starting bootstrap mode.')
@@ -59,7 +59,7 @@ def start():
         if bootstrapCredentials is None:
             logging.error('No bootstrap credentials found. Stopping agent.')
             return
-        bootstrapAgent = Bootstrap(serial, path, config)
+        bootstrapAgent = Bootstrap(serial, str(path), config)
         bootstrapAgent.bootstrap()
         credentials = config.getCredentials()
 
