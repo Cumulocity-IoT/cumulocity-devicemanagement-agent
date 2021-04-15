@@ -13,7 +13,7 @@ def findAgentModules():
   }
   for name in pkgutil.iter_modules([pkgpath]):
     logging.debug(name)
-    currentModule = 'c8ycc.agentmodules.' + name[1]
+    currentModule = 'c8ydm.agentmodules.' + name[1]
     i = importlib.import_module(currentModule)
     for name, obj in inspect.getmembers(i):
       if inspect.isclass(obj) and obj.__module__ == currentModule:

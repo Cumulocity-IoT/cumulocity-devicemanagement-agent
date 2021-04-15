@@ -15,6 +15,8 @@ class Bootstrap():
         self.url = self.configuration.getValue('mqtt', 'url')
         self.port = self.configuration.getValue('mqtt', 'port')
         self.ping = self.configuration.getValue('mqtt', 'ping.interval.seconds')
+        self.tls = self.configuration.getBooleanValue('mqtt', 'tls')
+        self.cacert = self.configuration.getValue('mqtt', 'cacert')
 
     def on_connect(self, client, userdata, flags, rc):
         logging.debug('Bootstrap connected with result code: ' + str(rc))
@@ -50,7 +52,8 @@ class Bootstrap():
         client.on_disconnect = self.on_disconnect
 
         credentials = self.configuration.getBootstrapCredentials()
-
+        if self.tls:
+             client.tls_set(self.cacert)
         client.username_pw_set(credentials[0] + '/' + credentials[1], credentials[2])
         client.connect(self.url, int(self.port), int(self.ping))
 

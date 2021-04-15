@@ -26,7 +26,7 @@ def start():
     containerId = None
     serial = None
     try:
-        if os.getenv('docker') == 'container':
+        if os.getenv('CONTAINER') == 'docker':
             containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
             containerId = containerId.strip('\n')
             containerId = containerId.strip()

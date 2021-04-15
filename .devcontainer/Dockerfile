@@ -3,7 +3,7 @@ ARG DEB_MIRROR=http://ftp.de.debian.org/debian
 
 # Install additional packages.
 ENV DEBIAN_FRONTEND=noninteractive
-ENV container docker
+ENV CONTAINER=docker
 RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     && apt-get update \
     && apt-get -y install --no-install-recommends \
@@ -48,6 +48,9 @@ RUN curl -O https://packages.microsoft.com/config/debian/10/packages-microsoft-p
     && apt-get update \
     && apt-get install -y powershell \
     && pwsh -c "Install-Module -Name PSc8y -Repository PSGallery -AllowPrerelease -Force"
+    
+# Install pylint
+RUN pip3 install pylint
 
 # Configure bash settings
 RUN echo "source /etc/profile.d/bash_completion.sh" >> "/root/.bashrc"
