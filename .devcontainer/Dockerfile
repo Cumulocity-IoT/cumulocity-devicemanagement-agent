@@ -52,6 +52,7 @@ RUN curl -O https://packages.microsoft.com/config/debian/10/packages-microsoft-p
 # Configure bash settings
 RUN echo "source /etc/profile.d/bash_completion.sh" >> "/root/.bashrc"
 
+WORKDIR /root
 # Copy files to override apt-get settings
 COPY ./.devcontainer/custom-files/docker-clean /etc/apt/apt.conf.d/
 
@@ -62,5 +63,6 @@ COPY ./config/agent.ini /root/.cumulocity/agent.ini
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-#COPY setup.py .
-#RUN pip3 install .
+COPY setup.py .
+COPY ./c8ydm ./c8ydm
+RUN pip3 install .

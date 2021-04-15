@@ -26,6 +26,12 @@ class Configuration():
       return self.configuration.get(category, key)
     except (NoOptionError, NoSectionError):
       return None
+  
+  def getBooleanValue(self, category, key):
+    try:
+      return self.configuration.getboolean(category, key)
+    except (NoOptionError, NoSectionError):
+      return None
 
   def setValue(self, category, key, value):
     if category not in self.configuration.sections():

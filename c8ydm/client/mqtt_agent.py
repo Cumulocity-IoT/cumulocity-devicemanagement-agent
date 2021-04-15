@@ -27,9 +27,9 @@ class Agent():
         self.url = self.configuration.getValue('mqtt', 'url')
         self.port = self.configuration.getValue('mqtt', 'port')
         self.ping = self.configuration.getValue('mqtt', 'ping.interval.seconds')
-        self.tls = self.configuration.getValue('mqtt','tls')
+        self.tls = self.configuration.getBooleanValue('mqtt','tls')
         self.cacert = self.configuration.getValue('mqtt','cacert')
-        self.cert_auth = self.configuration.getValue('mqtt', 'cert_auth')
+        self.cert_auth = self.configuration.getBooleanValue('mqtt', 'cert_auth')
         self.client_cert = self.configuration.getValue('mqtt', 'client_cert')
         self.client_key = self.confiuration.getValue('mqtt', 'client_key')
         self.interval = int(self.configuration.getValue('agent', 'main.loop.interval.seconds'))
@@ -37,6 +37,8 @@ class Agent():
         self.device_tyüe = self.confiuration.getValue('agent', 'type')
         self.logger = logging.getLogger(__name__)
         self.stop_event = threading.Event()
+        self.refresh_token_interval = 60
+        self.token = None
         if self.simulated:
             self.model = 'docker'
         else:
@@ -103,6 +105,20 @@ class Agent():
             self.logger.info("Stopping refresh token thread")
             self.stop_event.set()
         self.logger.info("Disconnecting MQTT Client")
+
+    def stop(self):
+        self.disconnect(self.__client)
+        stopmarker = 1
+
+    def pollPendingOperations(self):
+        while not self.stopmarker:
+            try:
+                time.sleep(15)
+                logging.debug('Polling for pending Operations')
+                pending = SmartRESTMessage('s/us', '500', [])
+                self.publishMessage(pending)
+            except Exception as e:
+                logging.error('Error on polling for Pending Operations: '+ str(e))
     
     def __on_connect(self, client, userdata, flags, rc):
         self.logger.info('Agent connected with result code: ' + str(rc))
@@ -115,7 +131,7 @@ class Agent():
             self.run()
         else:
             # Load core modules
-            time.sleep(5)
+            #time.sleep(5)
             commandHandler = CommandHandler(self.serial, self, self.configuration)
             configurationManager = ConfigurationManager(self.serial, self, self.configuration)
 
@@ -192,6 +208,10 @@ class Agent():
             for xid in self.__supportedTemplates:
                 self.logger.info('Subscribing to XID: %s', xid)
                 self.__client.subscribe('s/dc/' + xid)
+            if self.cert_auth:
+                self.logger.info("Starting refresh token thread ")
+                refresh_token_thread = _thread(target=self.refresh_token)
+                refresh_token_thread.start()
 
     def __on_message(self, client, userdata, msg):
         try:
@@ -199,6 +219,10 @@ class Agent():
             messageParts = decoded.split(',')
             message = SmartRESTMessage(msg.topic, messageParts[0], messageParts[1:])
             logging.debug('Received: topic=%s msg=%s', message.topic, message.getMessage())
+            if message.startswith('71'):
+                fields = message.split(",")
+                self.token = fields[1]
+                self.logger.info('New JWT Token received')
             for listener in self.__listeners:
                 logging.debug('Trigger listener ' + listener.__class__.__name__)
                 _thread.start_new_thread(listener.handleOperation, (message,))
@@ -220,3 +244,12 @@ class Agent():
     def publishMessage(self, message):
         self.logger.debug('Send: topic=%s msg=%s', message.topic, message.getMessage())
         self.__client.publish(message.topic, message.getMessage())
+
+    def refresh_token(self):
+        self.stop_event.clear()
+        while True:
+            self.logger.info("Refreshing Token")
+            self.__client.publish("s/uat", "",2)
+            if self.stop_event.wait(timeout=self.refresh_token_interval):
+                self.logger.info("Exit Refreshing Token Thread")
+                break

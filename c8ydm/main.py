@@ -50,8 +50,9 @@ def start():
     logging.debug('Credentials:')
     logging.debug(credentials)
     agent = Agent(serial, path, config, str(path) + '/agent.pid', simulated)
-
-    if credentials is None:
+    cert_auth = config.getBooleanValue('mqtt','cert_auth')
+    logging.debug(f'cert_auth: {cert_auth}')
+    if not cert_auth and credentials is None:
         logging.info('No credentials found. Starting bootstrap mode.')
         bootstrapCredentials = config.getBootstrapCredentials()
         if bootstrapCredentials is None:
@@ -60,10 +61,10 @@ def start():
         bootstrapAgent = Bootstrap(serial, str(path), config)
         bootstrapAgent.bootstrap()
         credentials = config.getCredentials()
-
-    if credentials is None:
-        logging.error('No credentials found after bootstrapping. Stopping agent.')
-        return
+        if credentials is None:
+            logging.error('No credentials found after bootstrapping. Stopping agent.')
+            return
+            
     agent.run()
 
 
