@@ -10,6 +10,7 @@ class Bootstrap():
     bootstrapped = False
 
     def __init__(self, serial, path, configuration):
+        self.logger = logging.getLogger(__name__)
         self.serial = serial
         self.configuration = configuration
         self.url = self.configuration.getValue('mqtt', 'url')
@@ -19,32 +20,32 @@ class Bootstrap():
         self.cacert = self.configuration.getValue('mqtt', 'cacert')
 
     def on_connect(self, client, userdata, flags, rc):
-        logging.debug('Bootstrap connected with result code: ' + str(rc))
+        self.logger.debug('Bootstrap connected with result code: ' + str(rc))
         client.subscribe('s/dcr')
 
     def on_disconnect(self, client, userdata, rc):
-        logging.debug('Bootstrap disconnected with result code: ' + str(rc))
+        self.logger.debug('Bootstrap disconnected with result code: ' + str(rc))
 
     def on_messageRegistration(self, client, userdata, msg):
         message = msg.payload.decode('utf-8')
         messageParts = message.split(',')
-        logging.debug(messageParts)
+        self.logger.debug(messageParts)
         if messageParts[0] == '70':
 
             while not self.bootstrapped:
                 try:
-                    logging.debug('Storing credentials...')
+                    self.logger.debug('Storing credentials...')
                     self.configuration.writeCredentials(messageParts[1], messageParts[2], messageParts[3])
-                    logging.debug('Storing credentials successful')
+                    self.logger.debug('Storing credentials successful')
                     client.unsubscribe('s/dcr')
                     self.bootstrapped = True
                 except Exception as e:
-                    logging.debug('Storing credentials failed. Waiting 5 Sec. to retry..')
-                    logging.exception(e)
+                    self.logger.debug('Storing credentials failed. Waiting 5 Sec. to retry..')
+                    self.logger.exception(e)
                     time.sleep(5)
 
     def bootstrap(self):
-        logging.info('Start bootstrap client')
+        self.logger.info('Start bootstrap client')
 
         client = mqtt.Client(client_id=self.serial)
         client.on_message = self.on_messageRegistration
@@ -62,7 +63,7 @@ class Bootstrap():
 
         while not self.bootstrapped:
             time.sleep(5)
-            logging.debug('poll credentials')
+            self.logger.debug('poll credentials')
             client.publish('s/ucr')
 
         client.on_message = None
@@ -70,5 +71,5 @@ class Bootstrap():
         client.disconnect()
         client.loop_stop()
         client = None
-        time.sleep(10)
-        logging.info('Stop bootstrap client')
+        time.sleep(5)
+        self.logger.info('Stop bootstrap client')

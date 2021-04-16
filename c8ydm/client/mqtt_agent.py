@@ -19,6 +19,7 @@ class Agent():
     stopmarker = 0
 
     def __init__(self, serial, path, configuration, pidfile, simulated):
+        self.logger = logging.getLogger(__name__)
         self.serial = serial
         self.simulated = simulated
         self.__client = mqtt.Client(serial)
@@ -39,7 +40,7 @@ class Agent():
             'agent', 'main.loop.interval.seconds'))
         self.device_name = f'{self.configuration.getValue("agent", "name")}-{serial}'
         self.device_type = self.configuration.getValue('agent', 'type')
-        self.logger = logging.getLogger(__name__)
+
         self.stop_event = threading.Event()
         self.refresh_token_interval = 60
         self.token = None
@@ -54,7 +55,6 @@ class Agent():
         try:
             self.logger.info('Starting agent')
             credentials = self.configuration.getCredentials()
-            initialized = self.configuration.getValue('agent', 'initialized')
             self.__client = self.connect(
                 credentials, self.serial, self.url, int(self.port), int(self.ping))
             self.__client.loop_start()
@@ -128,18 +128,18 @@ class Agent():
         while not self.stopmarker:
             try:
                 time.sleep(15)
-                logging.debug('Polling for pending Operations')
+                self.logger.debug('Polling for pending Operations')
                 pending = SmartRESTMessage('s/us', '500', [])
                 self.publishMessage(pending)
             except Exception as e:
-                logging.error(
+                self.logger.error(
                     'Error on polling for Pending Operations: ' + str(e))
 
     def __init_agent(self):
         # set Device Name
         self.__client.publish(
             "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
-        self.logger.info(f'Device published!')
+        #self.logger.info(f'Device published!')
         commandHandler = CommandHandler(self.serial, self, self.configuration)
         configurationManager = ConfigurationManager(
             self.serial, self, self.configuration)
@@ -249,18 +249,18 @@ class Agent():
             messageParts = decoded.split(',')
             message = SmartRESTMessage(
                 msg.topic, messageParts[0], messageParts[1:])
-            logging.debug('Received: topic=%s msg=%s',
+            self.logger.debug('Received: topic=%s msg=%s',
                           message.topic, message.getMessage())
-            if msg.startswith('71'):
+            if message.messageId == '71':
                 fields = msg.split(",")
                 self.token = fields[1]
                 self.logger.info('New JWT Token received')
             for listener in self.__listeners:
-                logging.debug('Trigger listener ' +
+                self.logger.debug('Trigger listener ' +
                               listener.__class__.__name__)
                 _thread.start_new_thread(listener.handleOperation, (message,))
         except Exception as e:
-            logging.error('Error on handling MQTT Message:' + str(e))
+            self.logger.error(f'Error on handling MQTT Message.', e)
 
     def __on_disconnect(self, client, userdata, rc):
         self.logger.debug("on_disconnect rc: " + str(rc))
@@ -268,22 +268,21 @@ class Agent():
         #     self.reset()
         #     return
         if rc != 0:
-            self.logger.error("Disconnected! Try to reconnect: " + str(rc))
+            self.logger.error(f'Disconnected with result code {rc}! Try to reconnect...')
             self.__client.reconnect()
 
     def __on_log(self, client, userdata, level, buf):
         self.logger.log(level, buf)
 
-    def publishMessage(self, message):
-        self.logger.debug('Send: topic=%s msg=%s',
-                          message.topic, message.getMessage())
-        self.__client.publish(message.topic, message.getMessage())
+    def publishMessage(self, message, qos=0):
+        self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage}')
+        self.__client.publish(message.topic, message.getMessage(), qos)
 
     def refresh_token(self):
         self.stop_event.clear()
         while True:
             self.logger.info("Refreshing Token")
-            self.__client.publish("s/uat", "", 2)
+            self.__client.publish('s/uat','',2)
             if self.stop_event.wait(timeout=self.refresh_token_interval):
                 self.logger.info("Exit Refreshing Token Thread")
                 break

@@ -10,7 +10,7 @@ from c8ydm.utils import Configuration
 
 class RemoteAccessListener(Listener):
     """Establishes Remote Access Connections"""
-
+    logger = logging.getLogger(__name__)
     remote_access_op_template = 'da600'
     remote_access_default_template = '530'
     fragment = 'c8y_RemoteAccessConnect'
@@ -35,16 +35,16 @@ class RemoteAccessListener(Listener):
             Exception: Error when handling the operation
        """
         try:
-            logging.debug(
+            self.logger.debug(
                 f'Handling Cloud Remote Access operation: listener={__name__}, message={message}')
 
-            if message.message_id == self.remote_access_default_template or message.message_id == self.remote_access_op_template:
+            if message.messageId == self.remote_access_default_template or message.messageId == self.remote_access_op_template:
                 self._set_executing()
                 self._proxy_connect(message)
             return
 
         except Exception as ex:
-            logging.error(f'Handling operation error. exception={ex}')
+            self.logger.error(f'Handling operation error. exception={ex}')
             self._set_failed(str(ex))
             # raise
 

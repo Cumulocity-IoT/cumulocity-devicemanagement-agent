@@ -7,6 +7,7 @@ import apt
 
 
 class SoftwareManager(Listener, Initializer):
+    logger = logging.getLogger(__name__)
 
     def group(self, seq, sep):
         result = [[]]
@@ -26,32 +27,32 @@ class SoftwareManager(Listener, Initializer):
         try:
             if 's/ds' in message.topic and message.messageId == '516':
                 ## When multiple operations received just take the first one for further processing
-                logging.info("message received :" + str(message.values))
+                #self.logger.debug("message received :" + str(message.values))
                 messages = self.group(message.values, '\n')[0]
-                logging.info("message processed:" + str(messages))
+                #self.logger.info("message processed:" + str(messages))
                 deviceId = messages.pop(0)
-                logging.info('Software update for device ' + deviceId + ' with message ' + str(messages))
-                executing = SmartRESTMessage('s/us', '501', ['c8y_SoftwareList'])
+                self.logger.info('Software update for device ' + deviceId + ' with message ' + str(messages))
+                executing = SmartRESTMessage('s/us', '501', ['c8y_SoftwareUpdate'])
                 self.agent.publishMessage(executing)
                 softwareToInstall = [messages[x:x + 3] for x in range(0, len(messages), 3)]
-                errors = self.installSoftware(softwareToInstall, False)
-                logging.info('Finished all software update')
+                errors = self.installSoftware(softwareToInstall, True)
+                self.logger.info('Finished all software update')
                 if len(errors) == 0:
                     # finished without errors
-                    finished = SmartRESTMessage('s/us', '503', ['c8y_SoftwareList'])
+                    finished = SmartRESTMessage('s/us', '503', ['c8y_SoftwareUpdate'])
                 else:
                     # finished with errors
-                    finished = SmartRESTMessage('s/us', '502', ['c8y_SoftwareList', ' - '.join(errors)])
+                    finished = SmartRESTMessage('s/us', '502', ['c8y_SoftwareUpdate', ' - '.join(errors)])
                 self.agent.publishMessage(finished)
-                self.agent.publishMessage(self.getInstalledSoftware(False))
+                self.agent.publishMessage(self.getInstalledSoftware(True))
         except Exception as e:
-          logging.exception(e)
+          self.logger.exception(e)
           failed = SmartRESTMessage('s/us', '502', ['c8y_SoftwareList', str(e)])
           self.agent.publishMessage(failed)
 
 
     def getSupportedOperations(self):
-        return ['c8y_SoftwareList']
+        return ['c8y_SoftwareUpdate']
 
 
     def getSupportedTemplates(self):
@@ -66,9 +67,9 @@ class SoftwareManager(Listener, Initializer):
 
         cache = apt.cache.Cache()
         if with_update:
-            logging.info('Starting apt update....')
+            self.logger.info('Starting apt update....')
             cache.update()
-            logging.info('apt update finished!')
+            self.logger.info('apt update finished!')
         cache.open()
 
         for pkg in cache:
@@ -91,9 +92,9 @@ class SoftwareManager(Listener, Initializer):
     def installSoftware(self, toBeInstalled, with_update):
         cache = apt.cache.Cache()
         if with_update:
-            logging.info('Starting apt update....')
+            self.logger.info('Starting apt update....')
             cache.update()
-            logging.info('apt update finished!')
+            self.logger.info('apt update finished!')
         cache.open()
 
         for software in toBeInstalled:
@@ -101,9 +102,9 @@ class SoftwareManager(Listener, Initializer):
             # Software currently installed in the same version
             if pkg.is_installed and pkg.installed.version == software[1]:
                 # no action needed
-                logging.debug('existing ' + pkg.shortname + '=' + pkg.installed.version)
+                self.logger.debug('existing ' + pkg.shortname + '=' + pkg.installed.version)
             else:
-                logging.info('install ' + pkg.shortname + '=' + software[1])
+                self.logger.info('install ' + pkg.shortname + '=' + software[1])
                 candidate = pkg.versions.get(software[1])
                 pkg.candidate = candidate
                 pkg.mark_install()
@@ -112,15 +113,15 @@ class SoftwareManager(Listener, Initializer):
         toBeInstalledSoftware = [i[0] for i in toBeInstalled]
         for pkg in cache:
             if not pkg.shortname.startswith('lib') and pkg.is_installed and pkg.shortname not in toBeInstalledSoftware:
-                logging.info('delete ' + pkg.shortname + '=' + pkg.installed.version)
+                self.logger.info('delete ' + pkg.shortname + '=' + pkg.installed.version)
                 pkg.mark_delete()
 
         try:
-            logging.info('Starting apt install/removal of Software..')
+            self.logger.info('Starting apt install/removal of Software..')
             cache.commit()
-            logging.info("Install/Removal of Software finished!")
+            self.logger.info("Install/Removal of Software finished!")
         except Exception as e:
-            logging.error(e)
+            self.logger.error(e)
 
         return []
 

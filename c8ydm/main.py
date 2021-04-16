@@ -8,6 +8,7 @@ import sys
 import time
 import pathlib
 from os.path import expanduser
+from logging.handlers import RotatingFileHandler
 
 import c8ydm.utils.systemutils as systemutils
 from c8ydm.client import Agent
@@ -21,8 +22,30 @@ def start():
     path.mkdir(parents=True, exist_ok=True)
     config = Configuration(str(path))
     simulated = False
-    logging.basicConfig(filename=path/'agent.log', level=logging.DEBUG,
-                        format='%(asctime)s %(threadName)s %(levelname)s %(message)s')
+    loglevel = config.getValue('agent', 'loglevel')
+    logger = logging.getLogger()
+    logger.setLevel(loglevel)
+    log_file_formatter = logging.Formatter(
+        '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
+    log_console_formatter = logging.Formatter('%(message)s')
+    # Set default log format
+    if len(logger.handlers) == 0:
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(log_console_formatter)
+        console_handler.setLevel(logging.ERROR)
+        logger.addHandler(console_handler)
+    else:
+        handler = logger.handlers[0]
+        handler.setFormatter(log_console_formatter)
+
+    # Max 5 log files each 10 MB.
+    rotate_handler = RotatingFileHandler(filename=path / 'agent.log', maxBytes=10000000,
+                                         backupCount=5)
+    rotate_handler.setFormatter(log_file_formatter)
+    rotate_handler.setLevel(loglevel)
+    # Log to Rotating File
+    logger.addHandler(rotate_handler)
+
     containerId = None
     serial = None
     try:
@@ -33,7 +56,6 @@ def start():
             logging.info('Container Id: %s', str(containerId))
     except Exception as e:
         logging.error('Could not retrieve container Id: ' + str(e))
-        output = None
 
     if containerId is None:
         serial = systemutils.getSerial()
@@ -44,7 +66,7 @@ def start():
         simulated = True
 
     startDaemon(str(path) + '/agent.pid')
-    logging.info('Serial %s', serial)
+    logging.info(f'Serial {serial}')
 
     credentials = config.getCredentials()
     logging.debug('Credentials:')
@@ -116,7 +138,7 @@ def startDaemon(pidfile):
     try:
         with open(pidfile, 'r') as pf:
             pid = int(pf.read().strip())
-            logging.info('Found pid file with pid ' + str(pid))
+            logging.info(f'Found pid file with pid {str(pid)}')
     except IOError:
         pid = None
 
