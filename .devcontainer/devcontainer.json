@@ -37,7 +37,8 @@
 		"eamodio.gitlens",
 		"ms-vscode.powershell",
 		"streetsidesoftware.code-spell-checker",
-		"shd101wyy.markdown-preview-enhanced"
+		"shd101wyy.markdown-preview-enhanced",
+		"mhutchie.git-graph"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
