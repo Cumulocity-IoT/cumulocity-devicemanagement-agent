@@ -25,9 +25,8 @@ import importlib
 from c8ydm.framework.modulebase import Sensor, Listener, Initializer
 import c8ydm.agentmodules as agentmodules
 
-
-def findAgentModules(self):
-    self.logger = logging.getLogger(__name__)
+def findAgentModules():
+    
     pkgpath = os.path.dirname(agentmodules.__file__)
     modules = {
         'sensors': [],
@@ -35,18 +34,18 @@ def findAgentModules(self):
         'initializers': []
     }
     for name in pkgutil.iter_modules([pkgpath]):
-        self.logger.debug(name)
+        logging.debug(name)
         currentModule = 'c8ydm.agentmodules.' + name[1]
         i = importlib.import_module(currentModule)
         for name, obj in inspect.getmembers(i):
             if inspect.isclass(obj) and obj.__module__ == currentModule:
                 if issubclass(obj, Sensor):
-                    self.logger.debug('Import sensor: ' + name)
+                    logging.debug('Import sensor: ' + name)
                     modules['sensors'].append(obj)
                 if issubclass(obj, Listener):
-                    self.logger.debug('Import listener: ' + name)
+                    logging.debug('Import listener: ' + name)
                     modules['listeners'].append(obj)
                 if issubclass(obj, Initializer):
-                    self.logger.debug('Import initializer: ' + name)
+                    logging.debug('Import initializer: ' + name)
                     modules['initializers'].append(obj)
     return modules
