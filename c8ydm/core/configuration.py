@@ -1,11 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""  
+Copyright (c) 2021 Software AG, Darmstadt, Germany and/or its licensors
+
+SPDX-License-Identifier: Apache-2.0
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 import logging, time
 from c8ydm.framework.modulebase import Listener, Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
 
 
 class ConfigurationManager(Listener, Initializer):
+    logger = logging.getLogger(__name__)
 
     def __init__(self, serial, agent, configuration):
         self.configuration = configuration
@@ -29,7 +47,7 @@ class ConfigurationManager(Listener, Initializer):
         try:
             if 's/ds' in message.topic and message.messageId == '513':
                 ## When multiple operations received just take the first one for further processing
-                logging.info('Configuration Operation received: ' + str(message.values))
+                self.logger.info('Configuration Operation received: ' + str(message.values))
                 message.values = self.group(message.values, '\n513')[0]
                 executing = SmartRESTMessage('s/us', '501', ['c8y_Configuration'])
                 self.agent.publishMessage(executing)
@@ -41,7 +59,7 @@ class ConfigurationManager(Listener, Initializer):
                 self.agent.publishMessage(success)
 
         except Exception as e:
-          logging.exception(e)
+          self.logger.exception(e)
           failed = SmartRESTMessage('s/us', '502', ['c8y_Configuration', str(e)])
           self.agent.publishMessage(failed)
 
