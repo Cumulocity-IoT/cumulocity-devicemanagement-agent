@@ -58,8 +58,9 @@
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
 		"destination=/mnt/root,type=tmpfs,tmpfs-mode=1770,tmpfs-size=50m"
-	]
+	],
 
 	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
 	// "remoteUser": "vscode"
+	"postAttachCommand": "service ssh start"
 }
