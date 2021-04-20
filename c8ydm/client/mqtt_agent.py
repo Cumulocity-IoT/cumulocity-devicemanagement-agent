@@ -127,15 +127,17 @@ class Agent():
             self.logger.info('Will retry to connect to C8Y in 5 sec...')
             time.sleep(5)
             # Run again after 5 sec. delay.
-            return self.connect(credentials, self.serial, self.url, int(self.port), int(self.ping))
+            return self.run()
 
     def disconnect(self, client):
+        self.logger.info("Disconnecting MQTT Client")
         client.loop_stop()  # stop the loop
         client.disconnect()
+        self.__client = None
         if self.cert_auth:
             self.logger.info("Stopping refresh token thread")
             self.stop_event.set()
-        self.logger.info("Disconnecting MQTT Client")
+        
 
     def stop(self):
         self.disconnect(self.__client)
@@ -289,7 +291,7 @@ class Agent():
             #self.__client.reconnect()
             time.sleep(5)
             # Run again after 5 sec. delay.
-            return self.connect(credentials, self.serial, self.url, int(self.port), int(self.ping))
+            return self.run()
 
     def __on_log(self, client, userdata, level, buf):
         self.logger.log(level, buf)

@@ -27,6 +27,7 @@ from c8ydm.utils import Configuration
 
 class RemoteAccessListener(Listener):
     """Establishes Remote Access Connections"""
+    xid = 'remoteConnect'
     logger = logging.getLogger(__name__)
     remote_access_op_template = 'da600'
     remote_access_default_template = '530'
@@ -92,7 +93,7 @@ class RemoteAccessListener(Listener):
         self._set_success()
 
     def getSupportedOperations(self):
-        return [self.fragment
-                ]
+        return [self.fragment]
+
     def getSupportedTemplates(self):
-        return []
+        return [self.xid]
