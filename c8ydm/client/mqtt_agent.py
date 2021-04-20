@@ -80,10 +80,17 @@ class Agent():
                 self.logger.debug('Waiting for MQTT Client to be connected')
             self.__init_agent()
             while not self.stopmarker:
+                self.logger.debug('New cycle')
                 self.interval = int(self.configuration.getValue(
                     'agent', 'main.loop.interval.seconds'))
+                for sensor in self.__sensors:
+                    messages = sensor.getSensorMessages()
+                    if messages is None or len(messages) == 0:
+                        continue
+                    for message in messages:
+                        self.publishMessage(message)
                 time.sleep(self.interval)
-                self.logger.debug('New cycle')
+                
 
         except Exception as e:
             self.logger.error('Error in C8Y Agent %s', e)

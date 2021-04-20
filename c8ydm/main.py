@@ -168,7 +168,7 @@ def startDaemon(pidfile):
                 f.write(pid + '\n')
         else:
             message = "pidfile {0} already exist. " + \
-                      "Daemon already running? Stop it with sudo snap stop c8ycc first.\n"
+                      "Daemon already running? Stop it with sudo c8ydm.stop first.\n"
             sys.stderr.write(message.format(pidfile))
             sys.exit(1)
     else:
