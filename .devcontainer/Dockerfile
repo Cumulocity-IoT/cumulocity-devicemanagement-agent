@@ -15,6 +15,7 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     python3-stdeb \
 	python3-websocket \
 	python3-all \
+    openssh-server \
     git \
     build-essential \
     debhelper \
@@ -27,6 +28,11 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     aptly
 
 RUN locale-gen en_US.UTF-8 # Fix locale errors
+
+# Set root passwd for container
+RUN echo 'root:test123#' | chpasswd
+# Start SSH Service
+RUN service ssh start
 
 #
 # Install Docker CE CLI
