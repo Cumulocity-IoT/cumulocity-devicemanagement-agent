@@ -65,26 +65,29 @@ def start():
     logger.addHandler(rotate_handler)
 
     containerId = None
-    serial = None
-    try:
-        if os.getenv('CONTAINER') == 'docker':
-            containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
-            containerId = containerId.strip('\n')
-            containerId = containerId.strip()
-            logging.info('Container Id: %s', str(containerId))
-    except Exception as e:
-        logging.error('Could not retrieve container Id: ' + str(e))
+    serial = config.getValue('agent','device.id')
 
-    if containerId is None:
-        serial = systemutils.getSerial()
-        logging.info('Output of SystemUtils Serial: %s', serial)
-        simulated = False
-    else:
-        serial = containerId.strip()
-        simulated = True
+    if serial == None:
+        logging.debug(f'Serial not proviced. Fetching from system...')
+        try:
+            if os.getenv('CONTAINER') == 'docker':
+                containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
+                containerId = containerId.strip('\n')
+                containerId = containerId.strip()
+                logging.info('Container Id: %s', str(containerId))
+        except Exception as e:
+            logging.error('Could not retrieve container Id: ' + str(e))
+
+        if containerId is None:
+            serial = systemutils.getSerial()
+            logging.info('Output of SystemUtils Serial: %s', serial)
+            simulated = False
+        else:
+            serial = containerId.strip()
+            simulated = True
 
     startDaemon(str(path) + '/agent.pid')
-    logging.info(f'Serial {serial}')
+    logging.info(f'Serial: {serial}')
 
     credentials = config.getCredentials()
     logging.debug('Credentials:')

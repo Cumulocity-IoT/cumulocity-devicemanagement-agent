@@ -29,11 +29,6 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
 
 RUN locale-gen en_US.UTF-8 # Fix locale errors
 
-# Set root passwd for container
-RUN echo 'root:test123#' | chpasswd
-# Start SSH Service
-RUN service ssh start
-
 #
 # Install Docker CE CLI
 #
@@ -54,7 +49,13 @@ RUN curl -O https://packages.microsoft.com/config/debian/10/packages-microsoft-p
     && apt-get update \
     && apt-get install -y powershell \
     && pwsh -c "Install-Module -Name PSc8y -Repository PSGallery -AllowPrerelease -Force"
-    
+
+# Set root passwd for container
+RUN mkdir /var/run/sshd
+RUN echo 'root:test123#' | chpasswd
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
 # Install pylint
 RUN pip3 install pylint
 
