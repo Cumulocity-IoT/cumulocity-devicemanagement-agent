@@ -285,8 +285,11 @@ class Agent():
         #     self.reset()
         #     return
         if rc != 0:
-            self.logger.error(f'Disconnected with result code {rc}! Try to reconnect...')
-            self.__client.reconnect()
+            self.logger.error(f'Disconnected with result code {rc}! Trying to reconnect...')
+            #self.__client.reconnect()
+            time.sleep(5)
+            # Run again after 5 sec. delay.
+            return self.connect(credentials, self.serial, self.url, int(self.port), int(self.ping))
 
     def __on_log(self, client, userdata, level, buf):
         self.logger.log(level, buf)
