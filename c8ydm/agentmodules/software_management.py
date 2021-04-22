@@ -110,7 +110,7 @@ class SoftwareManager(Listener, Initializer):
             self.agent.publishMessage(failed)
 
     def getSupportedOperations(self):
-        return ['c8y_SoftwareUpdate']
+        return ['c8y_SoftwareUpdate', 'c8y_SoftwareList']
 
     def getSupportedTemplates(self):
         return []

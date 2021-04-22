@@ -93,7 +93,7 @@ class Agent():
                 
 
         except Exception as e:
-            self.logger.error('Error in C8Y Agent %s', e)
+            self.logger.exception(f'Error in C8Y Agent: {e}', e)
             self.disconnect(self.__client)
             self.logger.info('Will retry to connect to C8Y in 5 sec...')
             time.sleep(5)
@@ -129,7 +129,7 @@ class Agent():
             self.__client.loop_start()
             return self.__client
         except Exception as e:
-            self.logger.error('Error on connecting C8Y Agent %s', e)
+            self.logger.exception(f'Error on connecting C8Y Agent: {e}', e)
             self.disconnect(self.__client)
             self.logger.info('Will retry to connect to C8Y in 5 sec...')
             time.sleep(5)
@@ -138,6 +138,8 @@ class Agent():
 
     def disconnect(self, client):
         self.logger.info("Disconnecting MQTT Client")
+        if client == None:
+            return
         client.loop_stop()  # stop the loop
         client.disconnect()
         self.__client = None
