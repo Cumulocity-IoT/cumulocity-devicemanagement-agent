@@ -65,7 +65,7 @@ def start():
     logger.addHandler(rotate_handler)
 
     containerId = None
-    serial = config.getValue('agent','device.id')
+    serial = None
 
     if serial == None:
         logging.debug(f'Serial not proviced. Fetching from system...')
@@ -75,6 +75,7 @@ def start():
                 containerId = containerId.strip('\n')
                 containerId = containerId.strip()
                 logging.info('Container Id: %s', str(containerId))
+                simulated = True
         except Exception as e:
             logging.error('Could not retrieve container Id: ' + str(e))
 
@@ -85,7 +86,8 @@ def start():
         else:
             serial = containerId.strip()
             simulated = True
-
+    if config.getValue('agent','device.id'):
+        serial = config.getValue('agent','device.id')
     startDaemon(str(path) + '/agent.pid')
     logging.info(f'Serial: {serial}')
 

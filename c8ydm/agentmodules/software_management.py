@@ -71,7 +71,7 @@ class SoftwareManager(Listener, Initializer):
                         's/us', '502', ['c8y_SoftwareUpdate', ' - '.join(errors)])
                 self.agent.publishMessage(finished)
                 self.agent.publishMessage(
-                    self.apt_package_manager.getInstalledSoftware(True))
+                    self.apt_package_manager.getInstalledSoftware(False))
 
             if 's/ds' in message.topic and message.messageId == '516':
                 # When multiple operations received just take the first one for further processing
@@ -99,7 +99,7 @@ class SoftwareManager(Listener, Initializer):
                         's/us', '502', ['c8y_SoftwareList', ' - '.join(errors)])
                 self.agent.publishMessage(finished)
                 self.agent.publishMessage(
-                    self.apt_package_manager.getInstalledSoftware(True))
+                    self.apt_package_manager.getInstalledSoftware(False))
         except Exception as e:
             self.logger.exception(e)
             failed = SmartRESTMessage(
@@ -116,5 +116,5 @@ class SoftwareManager(Listener, Initializer):
         return []
 
     def getMessages(self):
-        installedSoftware = self.apt_package_manager.getInstalledSoftware(True)
+        installedSoftware = self.apt_package_manager.getInstalledSoftware(False)
         return [installedSoftware]
