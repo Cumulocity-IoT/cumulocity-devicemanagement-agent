@@ -66,13 +66,18 @@ class FirmwareManagement(Listener, Initializer):
                 self._set_executing()
                 firmwareToInstall = [messages[x:x + 3]
                                      for x in range(0, len(messages), 3)]
-                if is_simulated:
+                #TODO Handle Firmware Update properly. Not working for Docker and Raspberry Pi.
+                self._set_success()
+                eventMsg = SmartRESTMessage('s/us', '400', ['c8y_FirmwareUpdateEvent', 'Firmware could not be updated as it is not supported by the current Device.'])
+                self.agent.publishMessage(eventMsg)
+                """ if is_simulated:
                     #No Firmware Updates are currently supported for docker containers
                     self._set_failed('No Firmware Updates are currently supported for docker containers!')
                 else:
                     #TODO Update Firmware for specific devices!
                     self.logger.info('Finished firmware update')
                     #TODO Update Firmware Version
+                """
         except Exception as e:
             self._set_failed(e)
 
