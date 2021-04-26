@@ -71,6 +71,7 @@ class Agent():
     def run(self):
         try:
             self.logger.info('Starting agent')
+            self.__client = mqtt.Client(self.serial)
             credentials = self.configuration.getCredentials()
             self.__client = self.connect(
                 credentials, self.serial, self.url, int(self.port), int(self.ping))
@@ -138,11 +139,11 @@ class Agent():
 
     def disconnect(self, client):
         self.logger.info("Disconnecting MQTT Client")
+        self.__client = None
         if client == None:
             return
         client.loop_stop()  # stop the loop
         client.disconnect()
-        self.__client = None
         if self.cert_auth:
             self.logger.info("Stopping refresh token thread")
             self.stop_event.set()
