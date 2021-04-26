@@ -67,9 +67,10 @@ class FirmwareManagement(Listener, Initializer):
                 firmwareToInstall = [messages[x:x + 3]
                                      for x in range(0, len(messages), 3)]
                 #TODO Handle Firmware Update properly. Not working for Docker and Raspberry Pi.
-                self._set_success()
-                eventMsg = SmartRESTMessage('s/us', '400', ['c8y_FirmwareUpdateEvent', 'Firmware could not be updated as it is not supported by the current Device.'])
-                self.agent.publishMessage(eventMsg)
+                self._set_failed('Firmware Update triggered but not supported by this device type')
+                alarmMsg = SmartRESTMessage('s/us', '304', ['c8y_FirmwareUpdateAlarm','Firmware Update triggered but not supported by this device type',''])
+                #eventMsg = SmartRESTMessage('s/us', '400', ['c8y_FirmwareUpdateEvent', 'Firmware could not be updated as it is not supported by the current Device.'])
+                self.agent.publishMessage(alarmMsg)
                 """ if is_simulated:
                     #No Firmware Updates are currently supported for docker containers
                     self._set_failed('No Firmware Updates are currently supported for docker containers!')

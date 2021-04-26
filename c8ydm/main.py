@@ -33,7 +33,7 @@ from c8ydm.client import Agent
 from c8ydm.client import Bootstrap
 from c8ydm.utils import Configuration
 
-
+agent = None
 def start():
     home = expanduser('~')
     path = pathlib.Path(home + '/.cumulocity')
@@ -109,8 +109,14 @@ def start():
         if credentials is None:
             logging.error('No credentials found after bootstrapping. Stopping agent.')
             return
-            
-    agent.run()
+    try:        
+        agent.run()
+    except Exception as ex:
+        logger.error(ex)
+    finally:
+        if agent:
+            agent.stop()
+        sys.exit(0)
 
 
 def stop():

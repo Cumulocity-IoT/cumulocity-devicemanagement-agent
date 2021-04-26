@@ -91,8 +91,6 @@ class Agent():
                     for message in messages:
                         self.publishMessage(message)
                 time.sleep(self.interval)
-                
-
         except Exception as e:
             self.logger.exception(f'Error in C8Y Agent: {e}', e)
             self.disconnect(self.__client)
@@ -150,8 +148,10 @@ class Agent():
         
 
     def stop(self):
+        msg = SmartRESTMessage('s/us', '400', ['c8y_AgentStopEvent', 'C8Y DM Agent stopped'])
+        self.publishMessage(msg, qos=0, wait_for_publish=True)
         self.disconnect(self.__client)
-        stopmarker = 1
+        self.stopmarker = 1
 
     def pollPendingOperations(self):
         while not self.stopmarker:
@@ -166,8 +166,10 @@ class Agent():
 
     def __init_agent(self):
         # set Device Name
-        self.__client.publish(
-            "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
+        msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
+        self.publishMessage(msg, 2)
+        #self.__client.publish(
+        #    "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
         #self.logger.info(f'Device published!')
         commandHandler = CommandHandler(self.serial, self, self.configuration)
         configurationManager = ConfigurationManager(
@@ -306,9 +308,13 @@ class Agent():
     def __on_log(self, client, userdata, level, buf):
         self.logger.log(level, buf)
 
-    def publishMessage(self, message, qos=0):
+    def publishMessage(self, message, qos=0, wait_for_publish=False):
         self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage}')
-        self.__client.publish(message.topic, message.getMessage(), qos)
+        if wait_for_publish:
+            self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish
+        else:
+            self.__client.publish(message.topic, message.getMessage(), qos)
+
 
     def refresh_token(self):
         self.stop_event.clear()
