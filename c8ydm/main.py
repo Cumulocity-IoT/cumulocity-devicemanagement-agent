@@ -116,6 +116,7 @@ def start():
     finally:
         if agent:
             agent.stop()
+        stop()
         sys.exit(0)
 
 
