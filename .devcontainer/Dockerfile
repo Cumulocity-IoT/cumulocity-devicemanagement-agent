@@ -9,6 +9,7 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     && apt-get -y install --no-install-recommends \
     python3 \
     python3-setuptools \
+    python3-apt \
     python3-pip \
     python3-dev \
     python3-wheel \

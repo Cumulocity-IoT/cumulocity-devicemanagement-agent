@@ -45,12 +45,12 @@ def start():
     logger.setLevel(loglevel)
     log_file_formatter = logging.Formatter(
         '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
-    log_console_formatter = logging.Formatter('%(message)s')
+    log_console_formatter = logging.Formatter('%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
     # Set default log format
     if len(logger.handlers) == 0:
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(log_console_formatter)
-        console_handler.setLevel(logging.ERROR)
+        console_handler.setLevel(loglevel)
         logger.addHandler(console_handler)
     else:
         handler = logger.handlers[0]
