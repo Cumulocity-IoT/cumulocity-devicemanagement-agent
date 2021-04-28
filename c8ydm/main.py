@@ -27,90 +27,99 @@ import time
 import pathlib
 from os.path import expanduser
 from logging.handlers import RotatingFileHandler
-
+import signal
 import c8ydm.utils.systemutils as systemutils
 from c8ydm.client import Agent
 from c8ydm.client import Bootstrap
 from c8ydm.utils import Configuration
 
 agent = None
+
+def handle_sigterm(*args):
+    raise KeyboardInterrupt()
+
 def start():
-    home = expanduser('~')
-    path = pathlib.Path(home + '/.cumulocity')
-    path.mkdir(parents=True, exist_ok=True)
-    config = Configuration(str(path))
-    simulated = False
-    loglevel = config.getValue('agent', 'loglevel')
-    logger = logging.getLogger()
-    logger.setLevel(loglevel)
-    log_file_formatter = logging.Formatter(
-        '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
-    log_console_formatter = logging.Formatter('%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
-    # Set default log format
-    if len(logger.handlers) == 0:
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(log_console_formatter)
-        console_handler.setLevel(loglevel)
-        logger.addHandler(console_handler)
-    else:
-        handler = logger.handlers[0]
-        handler.setFormatter(log_console_formatter)
-
-    # Max 5 log files each 10 MB.
-    rotate_handler = RotatingFileHandler(filename=path / 'agent.log', maxBytes=10000000,
-                                         backupCount=5)
-    rotate_handler.setFormatter(log_file_formatter)
-    rotate_handler.setLevel(loglevel)
-    # Log to Rotating File
-    logger.addHandler(rotate_handler)
-
-    containerId = None
-    serial = None
-
-    if serial == None:
-        logging.debug(f'Serial not proviced. Fetching from system...')
-        try:
-            if os.getenv('CONTAINER') == 'docker':
-                containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
-                containerId = containerId.strip('\n')
-                containerId = containerId.strip()
-                logging.info('Container Id: %s', str(containerId))
-                simulated = True
-        except Exception as e:
-            logging.error('Could not retrieve container Id: ' + str(e))
-
-        if containerId is None:
-            serial = systemutils.getSerial()
-            logging.info('Output of SystemUtils Serial: %s', serial)
-            simulated = False
+    try:
+        agent = None
+        signal.signal(signal.SIGTERM, handle_sigterm)
+        home = expanduser('~')
+        path = pathlib.Path(home + '/.cumulocity')
+        path.mkdir(parents=True, exist_ok=True)
+        config = Configuration(str(path))
+        simulated = False
+        loglevel = config.getValue('agent', 'loglevel')
+        logger = logging.getLogger()
+        logger.setLevel(loglevel)
+        log_file_formatter = logging.Formatter(
+            '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
+        log_console_formatter = logging.Formatter('%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
+        # Set default log format
+        if len(logger.handlers) == 0:
+            console_handler = logging.StreamHandler()
+            console_handler.setFormatter(log_console_formatter)
+            console_handler.setLevel(loglevel)
+            logger.addHandler(console_handler)
         else:
-            serial = containerId.strip()
-            simulated = True
-    if config.getValue('agent','device.id'):
-        serial = config.getValue('agent','device.id')
-    startDaemon(str(path) + '/agent.pid')
-    logging.info(f'Serial: {serial}')
+            handler = logger.handlers[0]
+            handler.setFormatter(log_console_formatter)
 
-    credentials = config.getCredentials()
-    logging.debug('Credentials:')
-    logging.debug(credentials)
-    agent = Agent(serial, path, config, str(path) + '/agent.pid', simulated)
-    cert_auth = config.getBooleanValue('mqtt','cert_auth')
-    logging.debug(f'cert_auth: {cert_auth}')
-    if not cert_auth and credentials is None:
-        logging.info('No credentials found. Starting bootstrap mode.')
-        bootstrapCredentials = config.getBootstrapCredentials()
-        if bootstrapCredentials is None:
-            logging.error('No bootstrap credentials found. Stopping agent.')
-            return
-        bootstrapAgent = Bootstrap(serial, str(path), config)
-        bootstrapAgent.bootstrap()
+        # Max 5 log files each 10 MB.
+        rotate_handler = RotatingFileHandler(filename=path / 'agent.log', maxBytes=10000000,
+                                            backupCount=5)
+        rotate_handler.setFormatter(log_file_formatter)
+        rotate_handler.setLevel(loglevel)
+        # Log to Rotating File
+        logger.addHandler(rotate_handler)
+
+        containerId = None
+        serial = None
+
+        if serial == None:
+            logging.debug(f'Serial not proviced. Fetching from system...')
+            try:
+                if os.getenv('CONTAINER') == 'docker':
+                    containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
+                    containerId = containerId.strip('\n')
+                    containerId = containerId.strip()
+                    logging.info('Container Id: %s', str(containerId))
+                    simulated = True
+            except Exception as e:
+                logging.error('Could not retrieve container Id: ' + str(e))
+
+            if containerId is None:
+                serial = systemutils.getSerial()
+                logging.info('Output of SystemUtils Serial: %s', serial)
+                simulated = False
+            else:
+                serial = containerId.strip()
+                simulated = True
+        if config.getValue('agent','device.id'):
+            serial = config.getValue('agent','device.id')
+        startDaemon(str(path) + '/agent.pid')
+        logging.info(f'Serial: {serial}')
+
         credentials = config.getCredentials()
-        if credentials is None:
-            logging.error('No credentials found after bootstrapping. Stopping agent.')
-            return
-    try:        
+        logging.debug('Credentials:')
+        logging.debug(credentials)
+        agent = Agent(serial, path, config, str(path) + '/agent.pid', simulated)
+        cert_auth = config.getBooleanValue('mqtt','cert_auth')
+        logging.debug(f'cert_auth: {cert_auth}')
+        if not cert_auth and credentials is None:
+            logging.info('No credentials found. Starting bootstrap mode.')
+            bootstrapCredentials = config.getBootstrapCredentials()
+            if bootstrapCredentials is None:
+                logging.error('No bootstrap credentials found. Stopping agent.')
+                return
+            bootstrapAgent = Bootstrap(serial, str(path), config)
+            bootstrapAgent.bootstrap()
+            credentials = config.getCredentials()
+            if credentials is None:
+                logging.error('No credentials found after bootstrapping. Stopping agent.')
+                return        
         agent.run()
+    except KeyboardInterrupt as ex:
+        logger.info(f'KeyboardInterrupt called!')
+        stop()
     except Exception as ex:
         logger.error(ex)
     finally:
@@ -127,7 +136,7 @@ def stop():
 
 def stopDaemon(pidfile):
     """Stop the daemon."""
-    print("Stopping...")
+    logging.info(f'Stopping...')
     # Get the pid from the pidfile
     try:
         with open(pidfile, 'r') as pf:
@@ -140,7 +149,7 @@ def stopDaemon(pidfile):
                   "Daemon not running?\n"
         sys.stderr.write(message.format(pidfile))
         return  # not an error in a restart
-
+    delpid(pidfile)
     # Try killing the daemon process
     try:
         while 1:
@@ -157,6 +166,7 @@ def stopDaemon(pidfile):
 
 
 def delpid(pidfile):
+    logging.info(f'Removing PID File {pidfile}')
     os.remove(pidfile)
 
 

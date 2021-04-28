@@ -52,4 +52,4 @@ COPY ./setup.py .
 COPY ./c8ydm ./c8ydm
 RUN pip3 install .
 
-CMD service ssh start && c8ydm.start
+CMD service ssh start && exec c8ydm.start

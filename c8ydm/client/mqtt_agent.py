@@ -167,7 +167,7 @@ class Agent():
     def __init_agent(self):
         # set Device Name
         msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
-        self.publishMessage(msg, 2)
+        self.publishMessage(msg, 2, wait_for_publish=True)
         #self.__client.publish(
         #    "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
         #self.logger.info(f'Device published!')
@@ -311,7 +311,7 @@ class Agent():
     def publishMessage(self, message, qos=0, wait_for_publish=False):
         self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage}')
         if wait_for_publish:
-            self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish
+            self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish()
         else:
             self.__client.publish(message.topic, message.getMessage(), qos)
 
