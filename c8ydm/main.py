@@ -34,14 +34,32 @@ from c8ydm.client import Bootstrap
 from c8ydm.utils import Configuration
 
 agent = None
+terminated = False
 
 def handle_sigterm(*args):
     raise KeyboardInterrupt
 
+def keyboard_interupt_hook(exctype, value, traceback):
+    try:
+        if exctype == KeyboardInterrupt:
+            logging.info(f'KeyboardInterrupt called!')
+            global agent
+            if agent:
+                agent.stop()
+            stop()
+            sys.exit(0)
+        else:
+            sys.__excepthook__(exctype, value, traceback)
+    except Exception as ex:
+        logging.error(ex)
+
+
 def start():
     try:
+        sys.excepthook = keyboard_interupt_hook
+        global agent
         agent = None
-        #signal.signal(signal.SIGTERM, handle_sigterm)
+        signal.signal(signal.SIGTERM, handle_sigterm)
         home = expanduser('~')
         path = pathlib.Path(home + '/.cumulocity')
         path.mkdir(parents=True, exist_ok=True)
@@ -95,8 +113,8 @@ def start():
                 simulated = True
         if config.getValue('agent','device.id'):
             serial = config.getValue('agent','device.id')
-        if not simulated:
-            startDaemon(str(path) + '/agent.pid')
+        #if not simulated:
+        startDaemon(str(path) + '/agent.pid')
         logging.info(f'Serial: {serial}')
 
         credentials = config.getCredentials()
@@ -118,12 +136,6 @@ def start():
                 logging.error('No credentials found after bootstrapping. Stopping agent.')
                 return        
         agent.run()
-    except KeyboardInterrupt as ex:
-        logger.info(f'KeyboardInterrupt called!')
-        if agent:
-            agent.stop()
-        stop()
-        sys.exit(0)
     except Exception as ex:
         logger.error(f'Error on main start {ex}')
         
@@ -136,6 +148,7 @@ def stop():
 def stopDaemon(pidfile):
     """Stop the daemon."""
     logging.info(f'Stopping...')
+    global terminated
     # Get the pid from the pidfile
     try:
         with open(pidfile, 'r') as pf:
@@ -149,9 +162,10 @@ def stopDaemon(pidfile):
     # Try killing the daemon process
     try:
         while 1:
-            os.kill(pid, signal.SIGTERM)
-            time.sleep(0.1)
-            delpid(pidfile)
+            if not terminated:
+                os.kill(pid, signal.SIGTERM)
+                time.sleep(0.1)
+                delpid(pidfile)
     except OSError as err:
         e = str(err.args)
         if e.find("No such process") > 0:

@@ -27,12 +27,11 @@ from c8ydm.utils import Configuration
 
 class RemoteAccessListener(Listener):
     """Establishes Remote Access Connections"""
-    xid = 'remoteConnect'
+    xid = 'c8y-dm-agent-v1.0'
     logger = logging.getLogger(__name__)
-    remote_access_op_template = 'da600'
+    remote_access_op_template = 'dm600'
     remote_access_default_template = '530'
     fragment = 'c8y_RemoteAccessConnect'
-    template_id = 'remoteConnect'
 
     def _set_executing(self):
         executing = SmartRESTMessage('s/us', '501', [self.fragment])
