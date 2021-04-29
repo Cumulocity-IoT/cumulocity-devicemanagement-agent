@@ -22,8 +22,9 @@ from abc import ABCMeta, abstractmethod
 class Sensor:
   __metaclass__ = ABCMeta
 
-  def __init__(self, serial):
+  def __init__(self, serial, agent):
     self.serial = serial
+    self.agent = agent
 
   '''
   Returns a list of SmartREST messages. Will be called every iteration of the main loop.
@@ -59,9 +60,9 @@ class Listener:
 class Initializer:
   __metaclass__ = ABCMeta
 
-  def __init__(self, serial):
+  def __init__(self, serial, agent):
     self.serial = serial
-
+    self.agent = agent
   '''
   Returns a list of SmartREST messages. Will be called at the start of the agent
   '''

@@ -36,12 +36,12 @@ from c8ydm.utils import Configuration
 agent = None
 
 def handle_sigterm(*args):
-    raise KeyboardInterrupt()
+    raise KeyboardInterrupt
 
 def start():
     try:
         agent = None
-        signal.signal(signal.SIGTERM, handle_sigterm)
+        #signal.signal(signal.SIGTERM, handle_sigterm)
         home = expanduser('~')
         path = pathlib.Path(home + '/.cumulocity')
         path.mkdir(parents=True, exist_ok=True)
@@ -95,7 +95,8 @@ def start():
                 simulated = True
         if config.getValue('agent','device.id'):
             serial = config.getValue('agent','device.id')
-        startDaemon(str(path) + '/agent.pid')
+        if not simulated:
+            startDaemon(str(path) + '/agent.pid')
         logging.info(f'Serial: {serial}')
 
         credentials = config.getCredentials()
@@ -119,20 +120,18 @@ def start():
         agent.run()
     except KeyboardInterrupt as ex:
         logger.info(f'KeyboardInterrupt called!')
-        stop()
-    except Exception as ex:
-        logger.error(ex)
-    finally:
         if agent:
             agent.stop()
         stop()
         sys.exit(0)
+    except Exception as ex:
+        logger.error(f'Error on main start {ex}')
+        
 
 
 def stop():
     path = expanduser('~') + '/.cumulocity'
     stopDaemon(path + '/agent.pid')
-
 
 def stopDaemon(pidfile):
     """Stop the daemon."""
@@ -145,16 +144,14 @@ def stopDaemon(pidfile):
         pid = None
 
     if not pid:
-        message = "pidfile {0} does not exist. " + \
-                  "Daemon not running?\n"
-        sys.stderr.write(message.format(pidfile))
-        return  # not an error in a restart
-    delpid(pidfile)
+        return
+    
     # Try killing the daemon process
     try:
         while 1:
             os.kill(pid, signal.SIGTERM)
             time.sleep(0.1)
+            delpid(pidfile)
     except OSError as err:
         e = str(err.args)
         if e.find("No such process") > 0:
@@ -166,8 +163,9 @@ def stopDaemon(pidfile):
 
 
 def delpid(pidfile):
-    logging.info(f'Removing PID File {pidfile}')
-    os.remove(pidfile)
+    if pathlib.Path(pidfile).is_file():
+        logging.info(f'Removing PID File {pidfile}')
+        os.remove(pidfile)
 
 
 def startDaemon(pidfile):

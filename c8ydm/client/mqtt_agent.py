@@ -22,7 +22,9 @@ import _thread
 import threading
 import paho.mqtt.client as mqtt
 
+
 import c8ydm.utils.moduleloader as moduleloader
+from c8ydm.client.rest_client import RestClient
 from c8ydm.core.command import CommandHandler
 from c8ydm.core.configuration import ConfigurationManager
 from c8ydm.framework.smartrest import SmartRESTMessage
@@ -62,6 +64,7 @@ class Agent():
         self.refresh_token_interval = 60
         self.token = None
         self.is_connected = False
+        self.rest_client = RestClient(self)
 
         if self.simulated:
             self.model = 'docker'
@@ -192,7 +195,7 @@ class Agent():
         classCache = {}
 
         for sensor in modules['sensors']:
-            currentSensor = sensor(self.serial)
+            currentSensor = sensor(self.serial, self)
             classCache[sensor.__name__] = currentSensor
             self.__sensors.append(currentSensor)
         for listener in modules['listeners']:
@@ -212,7 +215,7 @@ class Agent():
             if initializer.__name__ in classCache:
                 currentInitializer = classCache[initializer.__name__]
             else:
-                currentInitializer = initializer(self.serial)
+                currentInitializer = initializer(self.serial, self)
                 classCache[initializer.__name__] = currentInitializer
             messages = currentInitializer.getMessages()
             if messages is None or len(messages) == 0:
@@ -248,6 +251,7 @@ class Agent():
 
         self.__client.subscribe('s/e')
         self.__client.subscribe('s/ds')
+        self.__client.subscribe('s/dat')
 
         # subscribe additional topics
         for xid in self.__supportedTemplates:
@@ -255,7 +259,7 @@ class Agent():
             self.__client.subscribe('s/dc/' + xid)
         if self.cert_auth:
             self.logger.info("Starting refresh token thread ")
-            refresh_token_thread = _thread.start_new_thread(self.refresh_token)
+            _thread.start_new_thread(self.refresh_token)
             # refresh_token_thread.start()
 
     def __on_connect(self, client, userdata, flags, rc):
