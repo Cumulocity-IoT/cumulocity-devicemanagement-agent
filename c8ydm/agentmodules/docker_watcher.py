@@ -79,6 +79,9 @@ class DockerSensor(Sensor, Initializer, Listener):
                 process.wait()
                 if process.returncode == 0:
                     self._set_success()
+                    payload = self.docker_watcher.get_stats()
+                    internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
+                    self.agent.rest_client.update_managed_object(internal_id, payload)
                 else:
                     stderr = str(process.stderr.read().decode('utf-8'))
                     self.logger.error(f'Following error raised for docker: {stderr}')
