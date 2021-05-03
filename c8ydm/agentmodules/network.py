@@ -52,8 +52,13 @@ class Network(Initializer):
         return [net_msg, pos_msg]
     
     def get_public_ip(self):
-        ip = get('https://api.ipify.org').text
-        self.logger.debug(f'Public IP: {ip}')
-        return ip
+        try:
+            ip = get('https://api.ipify.org').text
+            self.logger.debug(f'Public IP: {ip}')
+            return ip
+        except Exception as ex:
+            self.logger.error(f'Error retrieving public IP: {ex}')
+            return None
+        
 
 

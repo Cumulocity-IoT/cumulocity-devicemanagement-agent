@@ -27,7 +27,7 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     bash-completion \
     locales \
     aptly \
-    geoip \
+    geoip-bin \
     geoip-database \
     geoip-database-extra
 
