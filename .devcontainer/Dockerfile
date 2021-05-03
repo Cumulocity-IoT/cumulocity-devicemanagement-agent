@@ -26,7 +26,10 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     fakeroot \
     bash-completion \
     locales \
-    aptly
+    aptly \
+    geoip \
+    geoip-database \
+    geoip-database-extra
 
 RUN locale-gen en_US.UTF-8 # Fix locale errors
 

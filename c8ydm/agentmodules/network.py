@@ -18,25 +18,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging, time
+from requests import get
 from pyspectator.computer import Computer
 from c8ydm.framework.modulebase import Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
+from c8ydm.core.geo_position_resolver import GeoPositionResolver
 
 class Network(Initializer):
     logger = logging.getLogger(__name__)
-    message_id = 'dm100'
+    net_message_id = 'dm100'
+    pos_message_id = '112'
     xid = 'c8y-dm-agent-v1.0'
     def_adapter = None
+    geo_pos_resolver = GeoPositionResolver()
 
     def getMessages(self):
         self.logger.info(f'Network Initializer called...')
         computer = Computer()
-        msg = None
+        net_msg = None
         with computer:
             name = str(computer.network_interface.name)
             mac = str(computer.network_interface.hardware_address)
             ip = str(computer.network_interface.ip_address)
             netmask = str(computer.network_interface.subnet_mask)
             enabled = 1
-            msg = SmartRESTMessage('s/uc/'+self.xid, self.message_id, [self.serial, ip, netmask, name, enabled, mac])
-        return [msg]
+            net_msg = SmartRESTMessage('s/uc/'+self.xid, self.net_message_id, [self.serial, ip, netmask, name, enabled, mac])
+        
+        pub_ip = self.get_public_ip()
+        lat_lng = self.geo_pos_resolver.get_pos_by_ip(pub_ip)
+        pos_msg = SmartRESTMessage('s/us', self.pos_message_id, [lat_lng['lat'], lat_lng['lng']])
+        return [net_msg, pos_msg]
+    
+    def get_public_ip(self):
+        ip = get('https://api.ipify.org').text
+        self.logger.debug(f'Public IP: {ip}')
+        return ip
+
+
