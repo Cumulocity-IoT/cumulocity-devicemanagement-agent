@@ -47,7 +47,7 @@ class Network(Initializer):
         pub_ip = self.get_public_ip()
         lat_lng = self.geo_pos_resolver.get_pos_by_ip(pub_ip)
         pos_msg = None
-        if lat_lng['lat'] is not None and lat_lng['lng'] is not None:
+        if lat_lng and lat_lng['lat'] is not None and lat_lng['lng'] is not None:
             pos_msg = SmartRESTMessage('s/us', self.pos_message_id, [lat_lng['lat'], lat_lng['lng']])
         return [net_msg, pos_msg]
     

@@ -24,8 +24,8 @@ class GeoPositionResolver:
     logger = logging.getLogger(__name__)
 
     def get_pos_by_ip(self, ip):
+        lat_lng = {}
         try:
-            lat_lng = {}
             if ip:
                 self.logger.info(f'Getting GEO Data for IP {ip}...')
                 geo_ip_data = subprocess.Popen(['geoiplookup', ip], stdout=subprocess.PIPE)
@@ -42,3 +42,4 @@ class GeoPositionResolver:
             return lat_lng
         except Exception as ex:
             self.logger.error(f'Error on retrieving GEO Position Data from IP: {ex}')
+            return lat_lng
