@@ -26,18 +26,19 @@ class GeoPositionResolver:
     def get_pos_by_ip(self, ip):
         try:
             lat_lng = {}
-            self.logger.info(f'Getting GEO Data for IP {ip}...')
-            geo_ip_data = subprocess.Popen(['geoiplookup', ip], stdout=subprocess.PIPE)
-            output = geo_ip_data.stdout.read().decode('utf-8')
-            if output:
-                self.logger.debug(f'Output of geoiplookup {output}')
-                geo_data_list = output.split('\n')
-                for line in geo_data_list:
-                    if "GeoIP City Edition" in line:
-                        geo_pos_list = line.split(', ')
-                        self.logger.debug(f'list of Geo Data {geo_pos_list}')
-                        lat_lng['lat'] = geo_pos_list[6]
-                        lat_lng['lng'] = geo_pos_list[7]
+            if ip:
+                self.logger.info(f'Getting GEO Data for IP {ip}...')
+                geo_ip_data = subprocess.Popen(['geoiplookup', ip], stdout=subprocess.PIPE)
+                output = geo_ip_data.stdout.read().decode('utf-8')
+                if output:
+                    self.logger.debug(f'Output of geoiplookup {output}')
+                    geo_data_list = output.split('\n')
+                    for line in geo_data_list:
+                        if "GeoIP City Edition" in line:
+                            geo_pos_list = line.split(', ')
+                            self.logger.debug(f'list of Geo Data {geo_pos_list}')
+                            lat_lng['lat'] = geo_pos_list[6]
+                            lat_lng['lng'] = geo_pos_list[7]
             return lat_lng
         except Exception as ex:
             self.logger.error(f'Error on retrieving GEO Position Data from IP: {ex}')
