@@ -27,7 +27,7 @@ from c8ydm.core.geo_position_resolver import GeoPositionResolver
 class Network(Initializer):
     logger = logging.getLogger(__name__)
     net_message_id = 'dm100'
-    pos_message_id = '112'
+    pos_message_id = '402'
     xid = 'c8y-dm-agent-v1.0'
     def_adapter = None
     geo_pos_resolver = GeoPositionResolver()
