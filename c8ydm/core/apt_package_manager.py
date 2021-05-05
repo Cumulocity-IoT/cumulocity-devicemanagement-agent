@@ -18,9 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
-import apt
+import platform
 from c8ydm.framework.smartrest import SmartRESTMessage
-
+if 'debian' in platform.dist():
+    import apt
 
 class AptPackageManager:
     logger = logging.getLogger(__name__)
