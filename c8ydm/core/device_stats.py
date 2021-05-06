@@ -31,32 +31,40 @@ class DeviceStats:
     def getMemoryStats(self):
         try:
             memory = {}
-            memory['free'] = {"value": psutil.virtual_memory().free}
-            memory['used'] = {"value": psutil.virtual_memory().used}
-            memory['total'] = {"value": psutil.virtual_memory().total}
-            memory['percent'] = {"value": psutil.virtual_memory().percent}
+            memory['free'] = psutil.virtual_memory().free
+            memory['used'] = psutil.virtual_memory().used
+            memory['total'] = psutil.virtual_memory().total
+            memory['percent'] = psutil.virtual_memory().percent
             self.logger.debug("Collected the following memory stats: %s" % (memory))
-            return memory
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
+        finally:
+            return memory
 
     def getCPUStats(self):
         try:
             cpu = {}
-            cpu['load'] = {'value': psutil.cpu_percent(0)}
+            cpu['guest'] = psutil.cpu_times_percent(interval=1, percpu=False)[0]
+            cpu['idle'] = psutil.cpu_times_percent(interval=1, percpu=False)[2]
+            cpu['iowait'] = psutil.cpu_times_percent(interval=1, percpu=False)[3]
+            cpu['irq'] = psutil.cpu_times_percent(interval=1, percpu=False)[4]
+            cpu['system'] = psutil.cpu_times_percent(interval=1, percpu=False)[8]
+            cpu['user'] = psutil.cpu_times_percent(interval=1, percpu=False)[9]
             self.logger.debug("Collected the following cpu stats: %s" % (cpu))
-            return cpu
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
+        finally:
+            return cpu
 
     def getDiskStats(self):
         try:
             disk = {}
-            disk['total'] = {'value': psutil.disk_usage('/').total}
-            disk['used'] = {'value': psutil.disk_usage('/').used}
-            disk['free'] = {'value': psutil.disk_usage('/').free}
-            disk['percent'] = {'value': psutil.disk_usage('/').percent}
+            disk['total'] = psutil.disk_usage('/').total
+            disk['used'] = psutil.disk_usage('/').used
+            disk['free'] = psutil.disk_usage('/').free
+            disk['percent'] = psutil.disk_usage('/').percent
             self.logger.debug("Collected the following disk stats: %s" % (disk))
-            return disk
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
+        finally:
+            return disk

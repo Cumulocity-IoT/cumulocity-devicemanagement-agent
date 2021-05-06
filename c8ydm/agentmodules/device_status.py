@@ -24,27 +24,28 @@ from c8ydm.framework.smartrest import SmartRESTMessage
 from c8ydm.core.device_stats import DeviceStats
 
 class DeviceSensor(Sensor, Initializer):
-    xid = 'c8y-dm-agent-v1.0'
     logger = logging.getLogger(__name__)
-
-    def __init__(self):
-        self.DeviceStats = DeviceStats()
+    DeviceStats = DeviceStats()
 
     def getSensorMessages(self):
-        print(self.sendStats())
-        return []
+        try:
+            return self.sendStats()
+        except Exception as e:
+            self.logger.exception(f'Error in DeviceSensor getSensorMessages: {e}', e)
 
     def getMessages(self):
-        print(self.sendStats())
-        return []
+        try:
+            return self.sendStats()
+        except Exception as e:
+            self.logger.exception(f'Error in DeviceSensor getMessages: {e}', e)
     
     def sendStats(self):
         self.stats = []
-        for key,value in self._getCPU():
+        for key,value in self._getCPU().items():
             self.stats.append(SmartRESTMessage('s/us', '200', ['CPU', key, value]))
-        for key,value in self._getDisk():
+        for key,value in self._getDisk().items():
             self.stats.append(SmartRESTMessage('s/us', '200', ['Disk', key, value]))
-        for key,value in self._getMemory():
+        for key,value in self._getMemory().items():
             self.stats.append(SmartRESTMessage('s/us', '200', ['Memory', key, value]))
         return self.stats
     
@@ -55,5 +56,4 @@ class DeviceSensor(Sensor, Initializer):
         return self.DeviceStats.getDiskStats() 
     
     def _getMemory(self):
-        return self.DeviceStats.getDiskStats()
-    
+        return self.DeviceStats.getMemoryStats()
