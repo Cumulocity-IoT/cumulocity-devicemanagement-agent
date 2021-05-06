@@ -42,11 +42,11 @@ class DeviceSensor(Sensor, Initializer):
     def sendStats(self):
         self.stats = []
         for key,value in self._getCPU().items():
-            self.stats.append(SmartRESTMessage('s/us', '200', ['CPU', key, value]))
+            self.stats.append(SmartRESTMessage('s/us', '200', ['cpu', key, value]))
         for key,value in self._getDisk().items():
-            self.stats.append(SmartRESTMessage('s/us', '200', ['Disk', key, value]))
+            self.stats.append(SmartRESTMessage('s/us', '200', ['disk', key, value]))
         for key,value in self._getMemory().items():
-            self.stats.append(SmartRESTMessage('s/us', '200', ['Memory', key, value]))
+            self.stats.append(SmartRESTMessage('s/us', '200', ['memory', key, value]))
         return self.stats
     
     def _getCPU(self):
