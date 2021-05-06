@@ -90,3 +90,46 @@ class RestClient():
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
             return None
+
+    def create_SmartRest_template(self,template):
+        try:
+            url = f'{self.base_url}/inventory/managedObjects'
+            self.logger.debug(f'Sending Request to url {url}')
+            payload = json.loads(template)
+            headers = self.get_auth_header()
+            headers['Content-Type'] ='application/json'
+            response = requests.request("POST", url, headers=headers, data = json.dumps(payload))
+            if response.status_code == 200 or response.status_code==201:
+                self.logger.info('Template created')
+                json_data = json.loads(response.text)
+                self.logger.debug(f'Recieved to following response text: {json_data}')
+                self.logger.debug('Returning the managed Object')
+                return True
+            else:
+                self.logger.warning('Response from request: ' + str(response.text))
+                self.logger.warning('Got response with status_code: ' +
+                            str(response.status_code))
+                return False
+        except Exception as e:
+            self.logger.error('The following error occured: %s' % (str(e)))
+    
+
+    def check_SmartRest_template_exists(self,templateID):
+        try:
+            url = f'{self.base_url}/identity/externalIds/c8y_SmartRest2DeviceIdentifier/{templateID}'
+            self.logger.debug(f'Sending Request to url {url}')
+            headers = self.get_auth_header()
+            headers['Content-Type'] ='application/json'
+            response = requests.request("GET", url, headers=headers)
+            self.logger.info('Checking against indentity service')
+            if response.status_code == 200:
+                self.logger.info('Managed object exists in C8Y')
+                self.logger.debug('Returning the internalID')
+                return True
+            else:
+                self.logger.warning('Response from request: ' + str(response.text))
+                self.logger.warning('Got response with status_code: ' + str(response.status_code))
+                return False
+        except Exception as e:
+            self.logger.error('The following error occured: %s' % (str(e)))
+            return False
