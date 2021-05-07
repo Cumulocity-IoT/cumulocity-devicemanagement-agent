@@ -71,6 +71,20 @@ class Agent():
         else:
             self.model = 'raspberry'
 
+    def handle_sensor_message(self, sensor):
+        messages = sensor.getSensorMessages()
+        if messages is not None and len(messages) > 0:
+            for message in messages:
+                self.publishMessage(message)
+
+    def handle_initializer_message(self, initializer):
+        messages = initializer.getMessages()
+        if messages is not None and len(messages) > 0:
+            for message in messages:
+                self.logger.debug('Send topic: %s, msg: %s',
+                                message.topic, message.getMessage())
+                self.publishMessage(message)
+
     def run(self):
         try:
             self.logger.info('Starting agent')
@@ -88,11 +102,11 @@ class Agent():
                 self.interval = int(self.configuration.getValue(
                     'agent', 'main.loop.interval.seconds'))
                 for sensor in self.__sensors:
-                    messages = sensor.getSensorMessages()
-                    if messages is None or len(messages) == 0:
-                        continue
-                    for message in messages:
-                        self.publishMessage(message)
+                    sensor_thread = threading.Thread(target=self.handle_sensor_message, args=(sensor,))
+                    sensor_thread.daemon = True
+                    sensor_thread.name = f'SensorThread-{sensor.__class__.__name__}'
+                    sensor_thread.start()
+                    #_thread.start_new_thread(self.handle_sensor_message, (sensor,))
                 time.sleep(self.interval)
         except Exception as e:
             self.logger.exception(f'Error in C8Y Agent: {e}', e)
@@ -217,13 +231,11 @@ class Agent():
             else:
                 currentInitializer = initializer(self.serial, self)
                 classCache[initializer.__name__] = currentInitializer
-            messages = currentInitializer.getMessages()
-            if messages is None or len(messages) == 0:
-                continue
-            for message in messages:
-                self.logger.debug('Send topic: %s, msg: %s',
-                                  message.topic, message.getMessage())
-                self.__client.publish(message.topic, message.getMessage())
+            init_thread = threading.Thread(target=self.handle_initializer_message, args=(currentInitializer,))
+            init_thread.daemon = True
+            init_thread.name = f'InitializerThread-{currentInitializer.__class__.__name__}'
+            init_thread.start()
+            #_thread.start_new_thread(self.handle_initializer_message, (currentInitializer,))
 
         classCache = None
 
@@ -259,7 +271,11 @@ class Agent():
             self.__client.subscribe('s/dc/' + xid)
         if self.cert_auth:
             self.logger.info("Starting refresh token thread ")
-            _thread.start_new_thread(self.refresh_token)
+            token_thread = threading.Thread(target=self.refresh_token)
+            token_thread.daemon = True
+            token_thread.name = f'TokenThread-1'
+            token_thread.start()
+            #_thread.start_new_thread(self.refresh_token)
             # refresh_token_thread.start()
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -293,7 +309,11 @@ class Agent():
             for listener in self.__listeners:
                 self.logger.debug('Trigger listener ' +
                               listener.__class__.__name__)
-                _thread.start_new_thread(listener.handleOperation, (message,))
+                listener_thread = threading.Thread(target=listener.handleOperation, args=(message,))
+                listener_thread.daemon = True
+                listener_thread.name = f'ListenerThread-{listener.__class__.__name__}'
+                listener_thread.start()
+                #_thread.start_new_thread(listener.handleOperation, (message,))
         except Exception as e:
             self.logger.error(f'Error on handling MQTT Message.', e)
 
