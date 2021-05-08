@@ -334,10 +334,11 @@ class Agent():
 
     def publishMessage(self, message, qos=0, wait_for_publish=False):
         self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage}')
-        if wait_for_publish:
-            self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish()
-        else:
-            self.__client.publish(message.topic, message.getMessage(), qos)
+        if self.__client is not None and self.__client.is_connected:
+            if wait_for_publish:
+                self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish()
+            else:
+                self.__client.publish(message.topic, message.getMessage(), qos)
 
 
     def refresh_token(self):

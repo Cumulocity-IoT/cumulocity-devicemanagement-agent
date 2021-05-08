@@ -46,7 +46,7 @@ class RestClient():
             return {'Authorization': 'Basic '+encoded_auth_string,}
 
     def update_managed_object(self, internal_id, payload):
-        self.logger.info('Update of managed Object')
+        #self.logger.info('Update of managed Object')
         try:
             url = f'{self.base_url}/inventory/managedObjects/{internal_id}'
             headers = self.get_auth_header()
@@ -56,7 +56,7 @@ class RestClient():
             self.logger.debug('Response from request: ' + str(response.text))
             self.logger.debug('Response from request with code : ' + str(response.status_code))
             if response.status_code == 200 or response.status_code == 201:
-                self.logger.info('Managed object updated in C8Y')
+                #self.logger.info('Managed object updated in C8Y')
                 return True
             else:
                 self.logger.warning('Managed object not updated in C8Y')
@@ -66,7 +66,7 @@ class RestClient():
     
     def get_internal_id(self, external_id):
         try:
-            self.logger.info('Checking against indentity service what is internalID in C8Y')
+            #self.logger.info('Checking against indentity service what is internalID in C8Y')
             url = f'{self.base_url}/identity/externalIds/c8y_Serial/{external_id}'
             self.logger.debug(f'Sending Request to url {url}')
             headers = self.get_auth_header()
@@ -76,10 +76,10 @@ class RestClient():
             self.logger.debug('Response from request: ' + str(response.text))
             self.logger.debug('Response from request with code : ' + str(response.status_code))
             if response.status_code == 200:
-                self.logger.info('Managed object exists in C8Y')
+                #self.logger.info('Managed object exists in C8Y')
                 json_data = json.loads(response.text)
                 internalID = json_data['managedObject']['id']
-                self.logger.info("The interalID for " + str(external_id) + " is " + str(internalID))
+                #self.logger.info("The internalID for " + str(external_id) + " is " + str(internalID))
                 self.logger.debug('Returning the internalID')
                 return internalID
             else:

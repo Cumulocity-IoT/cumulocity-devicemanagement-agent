@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging, time, json, time
+import subprocess
 from c8ydm.framework.modulebase import Listener, Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
 import os
@@ -29,7 +30,11 @@ class Restart(Listener, Initializer):
             executing = SmartRESTMessage('s/us', '501', ['c8y_Restart'])
             self.agent.publishMessage(executing)
             try:
-                os.system('shutdown -r 1')
+                if self.agent.simulated:
+                    process = subprocess.Popen(["docker","restart",self.serial],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    process.wait()
+                else:
+                    os.system('shutdown -r 1')
 
             except Exception as e:
                 failed = SmartRESTMessage('s/us', '502', ['c8y_Restart', 'Error during Restart:' + str(e)])
@@ -42,9 +47,5 @@ class Restart(Listener, Initializer):
         return []
 
     def getMessages(self):
-        response = None
-        if self.agent.simulated:
-            response = SmartRESTMessage('s/us', '502', ['c8y_Restart', 'Restart Failed due to simulated Device'])
-        else:
-            response = SmartRESTMessage('s/us', '503', ['c8y_Restart', 'Restart Successful'])
+        response = SmartRESTMessage('s/us', '503', ['c8y_Restart', 'Restart Successful'])
         return [response]

@@ -37,19 +37,24 @@ agent = None
 terminated = False
 
 def handle_sigterm(*args):
-    raise KeyboardInterrupt
+    global terminated
+    if not terminated:
+        raise KeyboardInterrupt
 
 def keyboard_interupt_hook(exctype, value, traceback):
     try:
+        global terminated
         if exctype == KeyboardInterrupt:
-            logging.info(f'KeyboardInterrupt called!')
-            global agent
-            if agent:
-                agent.stop()
-            stop()
-            sys.exit(0)
-        else:
-            sys.__excepthook__(exctype, value, traceback)
+            if not terminated:
+                logging.info(f'KeyboardInterrupt called!')
+                terminated = True
+                global agent
+                if agent:
+                    agent.stop()
+                stop()
+                sys.exit(0)
+        #else:
+        #    sys.__excepthook__(exctype, value, traceback)
     except Exception as ex:
         logging.error(ex)
 
@@ -158,14 +163,15 @@ def stopDaemon(pidfile):
 
     if not pid:
         return
-    
+    else:
+        delpid(pidfile)
     # Try killing the daemon process
     try:
         while 1:
             if not terminated:
                 os.kill(pid, signal.SIGTERM)
                 time.sleep(0.1)
-                delpid(pidfile)
+                
     except OSError as err:
         e = str(err.args)
         if e.find("No such process") > 0:
@@ -174,6 +180,7 @@ def stopDaemon(pidfile):
         else:
             print(str(err.args))
             sys.exit(1)
+    
 
 
 def delpid(pidfile):
