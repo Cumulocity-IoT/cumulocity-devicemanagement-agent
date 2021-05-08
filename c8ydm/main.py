@@ -35,6 +35,7 @@ from c8ydm.utils import Configuration
 
 agent = None
 terminated = False
+simulated = False
 
 def handle_sigterm(*args):
     global terminated
@@ -63,13 +64,13 @@ def start():
     try:
         sys.excepthook = keyboard_interupt_hook
         global agent
+        global simulated
         agent = None
         signal.signal(signal.SIGTERM, handle_sigterm)
         home = expanduser('~')
         path = pathlib.Path(home + '/.cumulocity')
         path.mkdir(parents=True, exist_ok=True)
         config = Configuration(str(path))
-        simulated = False
         loglevel = config.getValue('agent', 'loglevel')
         logger = logging.getLogger()
         logger.setLevel(loglevel)
@@ -194,6 +195,7 @@ def startDaemon(pidfile):
     print("Starting...")
     # Check for a pidfile to see if the daemon already runs
     pid = None
+    global simulated
     try:
         with open(pidfile, 'r') as pf:
             pid = int(pf.read().strip())
@@ -202,7 +204,7 @@ def startDaemon(pidfile):
         pid = None
 
     if pid:
-        if not isPidRunning(pid):
+        if simulated or not isPidRunning(pid):
             delpid(pidfile)
             pid = str(os.getpid())
             with open(pidfile, 'w+') as f:

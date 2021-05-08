@@ -15,6 +15,7 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     python3-wheel \
     python3-stdeb \
 	python3-websocket \
+    python3-requests \
 	python3-all \
     openssh-server \
     git \
@@ -68,5 +69,24 @@ RUN pip3 install -r requirements.txt
 COPY ./setup.py .
 COPY ./c8ydm ./c8ydm
 RUN pip3 install .
+
+# Clean up unnecessary packages
+RUN apt-get -y --purge autoremove \
+    git \
+    build-essential \
+    debhelper \
+    dh-python \
+    python-docutils \
+    python-sphinx \
+    fakeroot \
+    bash-completion \
+    locales \
+    aptly \
+    python3-all \
+    python3-pip \
+    python3-dev \
+    python3-wheel \
+    python3-stdeb \
+    python3-setuptools
 
 CMD service ssh start && exec c8ydm.start
