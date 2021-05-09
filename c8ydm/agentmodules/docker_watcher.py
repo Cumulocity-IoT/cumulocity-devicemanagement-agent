@@ -30,7 +30,7 @@ class DockerSensor(Sensor, Initializer, Listener):
     fragment = 'c8y_Docker'
 
     def getSensorMessages(self):
-        self.logger.info(f'Docker Update Loop called...')
+        #self.logger.info(f'Docker Update Loop called...')
         payload = self.docker_watcher.get_stats()
         internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
         self.agent.rest_client.update_managed_object(internal_id, payload)
