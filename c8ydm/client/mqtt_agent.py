@@ -182,6 +182,8 @@ class Agent():
                     'Error on polling for Pending Operations: ' + str(e))
 
     def __init_agent(self):
+        self.__listeners = []
+        self.__sensors = []
         # set Device Name
         msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
         self.publishMessage(msg, 2, wait_for_publish=True)
