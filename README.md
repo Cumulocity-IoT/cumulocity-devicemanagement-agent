@@ -1,5 +1,5 @@
 # Cumulocity IoT Device Management Reference Agent
-Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the Device Management Capabilities of Cumulocity IoT
+Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the [Device Management Capabilities](https://cumulocity.com/guides/users-guide/device-management/) of [Cumulocity IoT](https://www.softwareag.cloud/site/product/cumulocity-iot.html)
 
 # Quick Start
 
@@ -7,11 +7,53 @@ To quickly run the agent just make sure that Docker is installed on your compute
 
     ./start.sh
 
-The script will build an docker image and starting one instance.
+in a console of your choice. The script will build a docker image and starting one instance afterwards.
 When bootstrapping is used the docker container Id is the device Id which should be entered when registering a device in cumulocity.
 
 If you don't want to run within docker follow the steps below.
 
+# Configuration
+
+The agent can be configured via the agent.ini which must be placed in 
+
+    {userFolder}/.cumulocity
+
+When running in docker container the agent.ini can be mounted to the /root/.cumulocity/agent.ini
+
+Below a reference agent.ini is proviced:
+
+```console
+[mqtt]
+url = mqtt.eu-latest.cumulocity.com
+port = 8883
+tls = true
+cert_auth = false
+client_cert = s7y_pi.crt
+client_key = s7y_pi.key
+cacert = /etc/ssl/certs/ca-certificates.crt
+ping.interval.seconds = 60
+
+[agent]
+name = dm-example-device
+type = c8y_dm_example_device
+main.loop.interval.seconds = 10
+requiredinterval = 10
+loglevel = INFO
+```
+| Category | Property   | Description
+| ---------|:----------:|:-----------
+| mqtt     | url        | The URL of the Cumulocity MQTT endpoint
+| mqtt     | port       | The Port of the Cumulocity MQTT endpoint
+| mqtt     | tls        | True when using port 8883, false when using port 1883 
+| mqtt     | cert_auth  | true when you want use Device Certificates for Device Authentication
+| mqtt     | client_cert | Path to your cert which should be used to for Authentication
+| mqtt     | client_key  | Path to your private key for Authentication
+| mqtt     | ping.interval.seconds | Interval in seconds for the mqtt client to send pings to MQTT Broker to keep the connection alive.
+| agent    | name       | The prefix name of the Device in Cumulocity. The serial will be attached with a "-" e.g. dm-example-device-1234567.
+| agent    | type       | The Device Type in Cumulocity
+| agent    | main.loop.interval.seconds | The interval in seconds sensor data will be forwarded to Cumulocity
+| agent    | requiredinterval | The interval in minutes for Cumulocity to detect that the device is online/offline.
+| agent    | loglevel   | The log level to write and print to file/console. 
 # Build
 
 The agent can be build in multiple ways.
