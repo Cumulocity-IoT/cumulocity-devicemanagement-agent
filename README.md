@@ -1,47 +1,108 @@
-# cumulocity-devicemanagement-agent
-Cumulocity Reference Agent written in Python to demonstrate most of the Device Management Capabilities of Cumulocity IoT
-# Building the debian package
+# Cumulocity IoT Device Management Reference Agent
+Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the Device Management Capabilities of Cumulocity IoT
 
-In order to build the .deb yourself first install python-stdeb via apt. Afterwards run
+# Quick Start
+
+To quickly run the agent just make sure that Docker is installed on your computer an run
+
+    ./start.sh
+
+The script will build an docker image and starting one instance.
+When bootstrapping is used the docker container Id is the device Id which should be entered when registering a device in cumulocity.
+
+If you don't want to run within docker follow the steps below.
+
+# Build
+
+The agent can be build in multiple ways.
+## Building via pip
+
+To build the agent via pip just run
+
+    pip install -r requirements.txt
+
+ to install dependencies and afterwards
+
+    pip install .
+
+to build the agent itself.
+Please note that in debian/ubuntu you need additionally install
+
+    apt install python-apt
+
+via apt.
+## Building debian package
+
+In order to build the .deb yourself first install python-stdeb via apt.
+
+    apt install python-stdeb
+
+ Afterwards run
 
     python setup.py --command-packages=stdeb.command bdist_deb
 
 on the level of the setup.py.
 
-# Installing the debian package
-
 In oder to install the debian package locally run
 
     apt install ./deb_dist/python-c8ydm_0.1-1_all.deb 
 
-The package is also already available under https://packagecloud.io/tyrmanuz/poc
-Follow the install instructions on the repository to configure your apt to be able to install from the repository.
+## Building docker image
 
-Additionally you need to install the following package
+To build a docker image you can make use of the provided [Dockerfile](./docker/Dockerfile).
 
-    apt install python-apt
+Example:
+```console
+docker build -t dm-image -f docker/Dockerfile .
+```
 
-Note: This is not yet bundled correctly as a dependency therefore manual installation is necessary
+# Run
 
-# Running the agent
+## Python
 
 Before running the agent some manual steps need to be taken
 
-1. Install the python dependencies from requirements.txt as they are not yet bundled into the debian package
-2. Manually but the config files into /root/.cumulocity
+1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
 
-Afterwards agent can be started
+You can run the agent by executing
 
-    sudo c8ydm.start
+```console
+sudo c8ydm.start
+```
+in your console when you used [Building via pip](#building-via-pip) to build and install the agent.
 
-Note: The agent is not yet realized as a daemon. The above call will be blocking. Ensure to run as root other with the debian package management does not work.
+## apt / Debian package
 
-# Bootstrapping
+Before running the agent some manual steps need to be taken
 
-By default after installation the agent points to mqtt.cumulocity.com. This value can be changed in the configuration file after installation.
-The agent uses bootstrap credentials and the serialNumber is printed in the log on boot.
+1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
 
-# Extending the agent
+You can run the agent by executing
+
+```console
+sudo c8ydm.start
+```
+in your console when you used [Building via deb](#building-debian-package) to build and install the agent.
+
+## Docker
+
+You can run the agent by executing
+
+```console
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock dm-image
+```
+in your console when you used [Building Docker Image](#building-docker-image) to build and install the agent.
+
+The config can be mounted the container. Otherwise the default config will be used.
+
+# Develop
+
+## Dev Container
+The project comes with VS Code devcontainer support. Make sure you use [Visual Studio Code](https://code.visualstudio.com/) in combination with docker. Just open the project in VS Code and click on "Reopen in Dev Container".
+
+In the background the Agent will be build and started. Also a debug/run configuration is provided so you can easilly start/debug the agent within VS Code. 
+
+## Extending the agent
 
 The agent knows three types of classes that it will automatically load and include from the "agentmodules" directory.
 
