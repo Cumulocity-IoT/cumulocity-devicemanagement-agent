@@ -28,12 +28,15 @@ import pathlib
 from os.path import expanduser
 from logging.handlers import RotatingFileHandler
 import signal
+
+from paho.mqtt.client import LOGGING_LEVEL
 import c8ydm.utils.systemutils as systemutils
 from c8ydm.client import Agent
 from c8ydm.client import Bootstrap
 from c8ydm.utils import Configuration
 
 agent = None
+bootstrap_agent = None
 terminated = False
 simulated = False
 
@@ -52,6 +55,9 @@ def keyboard_interupt_hook(exctype, value, traceback):
                 global agent
                 if agent:
                     agent.stop()
+                global bootstrap_agent
+                if bootstrap_agent:
+                    bootstrap_agent.stop()
                 stop()
                 sys.exit(0)
         #else:
@@ -68,11 +74,15 @@ def start():
         agent = None
         signal.signal(signal.SIGTERM, handle_sigterm)
         home = expanduser('~')
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
         path = pathlib.Path(home + '/.cumulocity')
         path.mkdir(parents=True, exist_ok=True)
+        config_path = pathlib.Path(path / 'agent.ini')
+        if not config_path.is_file():
+            sys.exit(f'No agent.ini found in "{path}". Create it to properly configure the agent.')
         config = Configuration(str(path))
         loglevel = config.getValue('agent', 'loglevel')
-        logger = logging.getLogger()
         logger.setLevel(loglevel)
         log_file_formatter = logging.Formatter(
             '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
@@ -143,7 +153,7 @@ def start():
                 return        
         agent.run()
     except Exception as ex:
-        logger.error(f'Error on main start {ex}')
+        logger.exception(f'Error on main start {ex}', ex)
         
 
 
