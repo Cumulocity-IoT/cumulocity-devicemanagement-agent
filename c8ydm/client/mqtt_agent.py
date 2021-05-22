@@ -81,9 +81,10 @@ class Agent():
         messages = initializer.getMessages()
         if messages is not None and len(messages) > 0:
             for message in messages:
-                self.logger.debug('Send topic: %s, msg: %s',
-                                message.topic, message.getMessage())
-                self.publishMessage(message)
+                if message:
+                    self.logger.debug('Send topic: %s, msg: %s',
+                                    message.topic, message.getMessage())
+                    self.publishMessage(message)
 
     def run(self):
         try:
