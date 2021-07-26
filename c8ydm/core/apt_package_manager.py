@@ -47,6 +47,7 @@ class AptPackageManager:
         return SmartRESTMessage('s/us', '116', allInstalled)
 
     def install_software(self, software_to_install, with_update):
+        errors = []
         cache = apt.cache.Cache()
         if with_update:
             self.logger.info('Starting apt update....')
@@ -59,30 +60,39 @@ class AptPackageManager:
             # url = software[2]
             action = software[3]
             pkg = cache[name]
-            if action == 'install':
-                if version == 'latest':
-                    self.logger.info('install ' + pkg.shortname + '=latest')
-                    pkg.mark_install()
-                else:
-                    self.logger.info(
-                        'install ' + pkg.shortname + '=' + version)
+            if pkg is None:
+                errors.append('No Software found with name '+ name)
+            else:
+                if action == 'install':
+                    if version == 'latest':
+                        self.logger.info('install ' + pkg.shortname + '=latest')
+                        pkg.mark_install()
+                    else:
+                        self.logger.info(
+                            'install ' + pkg.shortname + '=' + version)
+                        candidate = pkg.versions.get(version)
+                        if candidate == None:
+                            errors.append('Version '+ version +' not available in Repo!')
+                        else:
+                            pkg.candidate = candidate
+                            pkg.mark_install()
+                # Software currently installed in the same version
+                if action == 'update' and pkg.is_installed and pkg.installed.version == version:
+                    # no action needed
+                    self.logger.debug('existing ' + pkg.shortname +
+                                    '=' + pkg.installed.version)
+                if action == 'update' and pkg.is_installed and pkg.installed.version != version:
+                    self.logger.info('install ' + pkg.shortname + '=' + version)
                     candidate = pkg.versions.get(version)
-                    pkg.candidate = candidate
-                    pkg.mark_install()
-            # Software currently installed in the same version
-            if action == 'update' and pkg.is_installed and pkg.installed.version == version:
-                # no action needed
-                self.logger.debug('existing ' + pkg.shortname +
-                                '=' + pkg.installed.version)
-            if action == 'update' and pkg.is_installed and pkg.installed.version != version:
-                self.logger.info('install ' + pkg.shortname + '=' + version)
-                candidate = pkg.versions.get(version)
-                pkg.candidate = candidate
-                pkg.mark_install()
-            if action == 'delete' and pkg.is_installed:
-                self.logger.info('delete ' + pkg.shortname +
-                                '=' + pkg.installed.version)
-                pkg.mark_delete()
+                    if candidate == None:
+                            errors.append('Version '+ version +' not available in Repo!')
+                    else:
+                        pkg.candidate = candidate
+                        pkg.mark_install()
+                if action == 'delete' and pkg.is_installed:
+                    self.logger.info('delete ' + pkg.shortname +
+                                    '=' + pkg.installed.version)
+                    pkg.mark_delete()
         try:
             self.logger.info('Starting apt install/removal of Software..')
             cache.commit()
@@ -90,7 +100,7 @@ class AptPackageManager:
         except Exception as e:
             self.logger.error(e)
 
-        return []
+        return errors
 
     """ Old Deprecated Version of Software Updates """
     def installSoftware(self, toBeInstalled, with_update):
