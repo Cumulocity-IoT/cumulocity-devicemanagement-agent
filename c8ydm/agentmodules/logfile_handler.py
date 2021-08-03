@@ -24,6 +24,7 @@ from c8ydm.framework.smartrest import SmartRESTMessage
 class LogfileInitializer(Initializer, Listener):
     logger = logging.getLogger(__name__)
     fragment = 'c8y_LogfileRequest'
+    
 
     def getMessages(self):
         self.logger.info(f'\n\n*****LogListener Initializer called*****\n')
@@ -42,8 +43,7 @@ class LogfileInitializer(Initializer, Listener):
 
     #datei anhängen
     def _set_success(self, url):
-        success = SmartRESTMessage('s/us', '503', [self.fragment, url])
-        #restclient url holen und mitschicken
+        success = SmartRESTMessage('s/us', '503', self.fragment)
         self.agent.publishMessage(success)
 
     def _set_failed(self, reason):
@@ -51,7 +51,10 @@ class LogfileInitializer(Initializer, Listener):
         self.agent.publishMessage(failed)
     
     def handleOperation(self, message):
-         if 's/ds' in message.topic and message.messageId == '522':
+
+        internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
+            
+        if 's/ds' in message.topic and message.messageId == '522':
             # When multiple operations received just take the first one for further processing
             #self.logger.debug("message received :" + str(message.values))
             deviceid = message.values[0]
@@ -61,26 +64,31 @@ class LogfileInitializer(Initializer, Listener):
             searchtext = message.values[4]
             maximumlines = message.values[5]
             print('\n deviceid: {}\n starttime: {}\n endtime: {}\n searchtext:{}\n maximumlines:{} \n'.format(deviceid, starttime, endtime, searchtext, maximumlines))
-          #self.logger.info('LogFile HandleOperation Called for '+ deviceid)
+            #self.logger.info('LogFile HandleOperation Called for '+ deviceid)
             with open('/root/.cumulocity/agent.log', 'r') as f:
                 data = f.read()
                 f.close()
             if searchtext in data and searchtext != '':
                 print('Searchstring is inside file')
+                memFile = io.BytesIO(data.encode('utf8'))
 
             elif searchtext=='':
                 print('No Searchstring provided')
                 #io.StringIO creates string file # bytesIO creates a binary file
-                with io.BytesIO(data.encode('utf8')) as memFile:
-                    print(memFile.read())
-                    print('check')
+                #better with "with" statement for proper memory cleanup
+                #with io.BytesIO(data.encode('utf8')) as memFile:
+                memFile = io.BytesIO(data.encode('utf8'))
+                print(memFile.read())
+                print('check')
                 #after the 'with' statement the memFile gets closed to free the memorybuffer
-
-                
             else:
                 print('Searchstring is not inside file.')
-                #need to know the fragmentname for a response that the request failed
-                self._set_failed('Searchstring is not inside the file')
+            #need to know the fragmentname for a response that the request failed
+            #self._set_failed('Searchstring is not inside the file')
+            payload = {'object' : '{"name" : "logfile{deviceid}", "type:" "text/plain" }'}
+            file = [("file", memFile)]
+            self.agent.rest_client.upload_binary_logfile(self, internal_id, payload, file)
+            print('Logfile Request handled ')
         
             # with the following lines you can view the current directory structure
             # entries = os.listdir()
