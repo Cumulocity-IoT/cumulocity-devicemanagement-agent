@@ -90,3 +90,28 @@ class RestClient():
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
             return None
+
+    def upload_binary_logfile(self, internal_id, payload, file):
+            #self.logger.info('Update of managed Object')
+            try:
+                url = f'{self.base_url}/inventory/binaries'
+                headers = self.get_auth_header()
+                headers['Content-Type'] ='multipart/form-data'
+                headers['Accept'] ='application/json'
+                self.logger.debug(f'Sending Request to url {url}')
+                response = requests.request("POST", url, headers=headers, data=payload, files=file)
+                print("Responsestatuscode:"+ str(response.status_code))
+                print("RESPONSEMSG: "+str(response.text))
+                self.logger.debug('Response from request: ' + str(response.text))
+                self.logger.debug('Response from request with code : ' + str(response.status_code))
+                if response.status_code == 200 or response.status_code == 201:
+                    json_data = json.loads(response.text)
+                    binaryurl = json_data["self"]
+                    #print(binaryurl)
+                    #return binaryurl
+                    return binaryurl
+                else:
+                    self.logger.warning('Binary upload failed in C8Y')
+                    return False
+            except Exception as e:
+                self.logger.error('The following error occured: %s' % (str(e)))
