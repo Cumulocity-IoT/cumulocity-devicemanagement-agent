@@ -1,6 +1,6 @@
 paho-mqtt==1.5.1
 psutil==5.8.0
 requests==2.25.1
-websocket_client==0.58.0
 setuptools==54.1.2
 pyspectator==1.2.2
+c8y-device-proxy>=1.0.1
