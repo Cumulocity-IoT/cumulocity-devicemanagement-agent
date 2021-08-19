@@ -179,9 +179,10 @@ def stopDaemon(pidfile):
     # Try killing the daemon process
     try:
         while 1:
-            if not terminated:
-                os.kill(pid, signal.SIGTERM)
-                time.sleep(0.1)
+            #if not terminated:
+            logging.debug(f'Try killing pid {pid}')
+            os.kill(pid, signal.SIGKILL)
+            time.sleep(0.1)
                 
     except OSError as err:
         e = str(err.args)
