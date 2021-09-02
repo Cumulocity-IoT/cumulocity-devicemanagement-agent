@@ -306,8 +306,7 @@ class Agent():
             self.logger.debug('Received: topic=%s msg=%s',
                           message.topic, message.getMessage())
             if message.messageId == '71':
-                fields = msg.split(",")
-                self.token = fields[1]
+                self.token = message.values
                 self.logger.info('New JWT Token received')
             for listener in self.__listeners:
                 self.logger.debug('Trigger listener ' +
