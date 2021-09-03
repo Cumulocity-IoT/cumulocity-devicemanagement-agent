@@ -31,7 +31,8 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     geoip-database \
     geoip-database-extra
 
-RUN locale-gen en_US.UTF-8 # Fix locale errors
+# Fix locale errors
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 #
 # Install Docker CE CLI

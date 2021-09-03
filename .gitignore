@@ -130,3 +130,7 @@ dmypy.json
 
 # IDEs
 .idea/
+
+# Debian package
+*.tar.gz
+deb_dist/
