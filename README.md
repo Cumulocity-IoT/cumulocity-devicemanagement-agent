@@ -144,6 +144,23 @@ The project comes with VS Code devcontainer support. Make sure you use [Visual S
 
 In the background the Agent will be build and started. Also a debug/run configuration is provided so you can easilly start/debug the agent within VS Code. 
 
+### Using certificate authentication
+
+The container is built along with certificates, which are placed at `/root/.cumulocity/certs`. 
+You can add the generated root certificate to your tenant's trusted certificate list by executing the script like below:
+
+```
+./scripts/upload_cert.sh \
+--tenant-domain <tenant domain> \
+--tenant-id <tenant ID> \
+--username <username for the tenant> \
+--password <password for the tenant> \
+--cert-path /root/.cumulocity/certs/iot-ca.pem \
+--cert-name <(arbitrary) displayed name of the root certificate>
+```
+
+After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001`).
+
 ## Extending the agent
 
 The agent knows three types of classes that it will automatically load and include from the "agentmodules" directory.
