@@ -146,7 +146,7 @@ In the background the Agent will be build and started. Also a debug/run configur
 
 ### Using certificate authentication
 
-The container is built along with certificates, which are placed at `/root/.cumulocity/certs`. 
+The container generates certificates when it starts, which are placed at `/root/.cumulocity/certs`. 
 You can add the generated root certificate to your tenant's trusted certificate list by executing the script like below:
 
 ```
@@ -159,7 +159,7 @@ You can add the generated root certificate to your tenant's trusted certificate 
 --cert-name <(arbitrary) displayed name of the root certificate>
 ```
 
-After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001`).
+After this, you can connect the agent to your tenant using cert authentication.
 
 ## Extending the agent
 
