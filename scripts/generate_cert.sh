@@ -6,6 +6,8 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 INTERMEDIATE_CONFIG="$SCRIPT_DIR/intermediate-config.cnf"
 END_USER_CONFIG="$SCRIPT_DIR/end-user-config.cnf"
 
+DEVICE_CERT="device-cert"
+
 function clean() {
     local filename_prefix=$1
     rm $filename_prefix-private-key.pem \
@@ -48,21 +50,22 @@ function create_root_self_signed_cert() {
 
 function create_signed_cert() {
     local serial=$1
-    local signing_cert_file_name_prefix=$2
+    local filename_prefix=$2
+    local signing_cert_file_name_prefix=$3
 
     local subject
     subject="/C=EU/ST=PL/O=device/CN=$serial"
 
     clean "$serial"
-    private_key "$serial"
-    csr "$serial" "$subject"
+    private_key "$filename_prefix"
+    csr "$filename_prefix" "$subject"
 
     #sign cert request
     openssl x509 -req \
         -CA "$signing_cert_file_name_prefix".pem \
         -CAkey "$signing_cert_file_name_prefix"-private-key.pem \
-        -in "$serial"-cert-sign-request.pem \
-        -out "$serial".pem \
+        -in "$filename_prefix"-cert-sign-request.pem \
+        -out "$filename_prefix".pem \
         -days 730 \
         -extensions v3_req \
         -extfile $END_USER_CONFIG \
@@ -83,6 +86,11 @@ do
 	    shift
 	    shift
 	    ;;
+	--cert-name)
+	    cert_name="$2"
+	    shift
+	    shift
+	    ;;        
     --cert-dir)
 	    cert_dir="$2"
 	    shift
@@ -95,6 +103,6 @@ mkdir -p "$cert_dir"
 cd "$cert_dir"
 
 create_root_self_signed_cert "$root_name"
-create_signed_cert "$serial" "$root_name"
-cat "$serial.pem" "$root_name.pem" > "chain-$serial.pem"
+create_signed_cert "$serial" "$cert_name" "$root_name"
+cat "$cert_name.pem" "$root_name.pem" > "chain-cert.pem"
 echo "done"
