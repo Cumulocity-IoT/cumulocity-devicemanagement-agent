@@ -10,6 +10,16 @@ To quickly run the agent just make sure that Docker is installed on your compute
 in a console of your choice. The script will build a docker image and starting one instance afterwards.
 When bootstrapping is used the docker container Id is the device Id which should be entered when registering a device in cumulocity.
 
+To connect to your own tenant, run
+
+```
+C8YDM_MQTT_URL=<tenant domain> \
+C8YDM_SECRET_C8Y__BOOTSTRAP__TENANT=<tenant ID> \
+C8YDM_SECRET_C8Y__BOOTSTRAP__USER=<username used for bootstrapping> \
+C8YDM_SECRET_C8Y__BOOTSTRAP__PASSWORD=<password used for bootstrapping> \
+./start.sh
+```
+
 If you don't want to run within docker follow the steps below.
 
 # Configuration
@@ -54,6 +64,16 @@ loglevel = INFO
 | agent    | main.loop.interval.seconds | The interval in seconds sensor data will be forwarded to Cumulocity
 | agent    | requiredinterval | The interval in minutes for Cumulocity to detect that the device is online/offline.
 | agent    | loglevel   | The log level to write and print to file/console. 
+
+## Environment variables
+
+The environment variables which with C8YDM_ prefix are mapped to configuration files.
+Mapping rules:
+
+  - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
+  - Upper case letters are mapped to lower case letters
+  - Double underscore __ is mapped to .
+
 # Build
 
 The agent can be build in multiple ways.
@@ -146,10 +166,15 @@ In the background the Agent will be build and started. Also a debug/run configur
 
 ### Using certificate authentication
 
-The container is built along with certificates, which are placed at `/root/.cumulocity/certs`. 
-You can add the generated root certificate to your tenant's trusted certificate list by executing the script like below:
+You can generate certificates necessary to certficate authentication, and you can upload the generated root certificate o your tenant's trusted certificate list by executing the scripts like below:
 
 ```
+./scripts/generate_cert.sh \
+--serial pyagent0001 \
+--root-name iot-ca \
+--cert-dir /root/.cumulocity/certs \
+--cert-name device-cert
+
 ./scripts/upload_cert.sh \
 --tenant-domain <tenant domain> \
 --tenant-id <tenant ID> \
@@ -159,7 +184,7 @@ You can add the generated root certificate to your tenant's trusted certificate 
 --cert-name <(arbitrary) displayed name of the root certificate>
 ```
 
-After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001`).
+After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001` in this case).
 
 ## Extending the agent
 
