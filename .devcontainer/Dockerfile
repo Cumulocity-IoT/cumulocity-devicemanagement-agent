@@ -83,7 +83,3 @@ COPY ./c8ydm ./c8ydm
 RUN pip3 install .
 
 COPY ./scripts ./scripts
-RUN ./scripts/generate_cert.sh \
-    --serial pyagent0001 \
-    --root-name iot-ca \
-    --cert-dir /root/.cumulocity/certs
