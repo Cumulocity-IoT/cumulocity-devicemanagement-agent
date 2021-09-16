@@ -19,32 +19,7 @@ limitations under the License.
 """
 import configparser, logging, os
 from shutil import copyfile
-from configparser import NoOptionError, NoSectionError, BasicInterpolation
-
-class EnvInterpolation(BasicInterpolation):
-  """
-  Interpolation which expands environment variables starting with `C8Y` in values.
-  Mapping rules from environment variable name to config key:
-
-  - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
-  - Upper case letters are mapped to lower case letters
-  - Double underscore __ is mapped to .
-
-  e.g. `C8YDM_SECRET_C8Y__TENANT` is mapped to `c8y.tenant` in [secret] section.
-  """
-  def __init__(self, logger):
-    super().__init__()
-    self.logger = logger
-
-  def before_get(self, parser, section, option, value, defaults):
-    value = super().before_get(parser, section, option, value, defaults)
-    corresponding_env = "C8YDM_{}_{}".format(section.upper(), option.upper().replace(".", "__"))
-    if corresponding_env in os.environ:
-      env_value = os.getenv(corresponding_env)
-      self.logger.debug('Replacing config value: {} = {}'.format(option, env_value))
-      return env_value
-    else:
-      return value
+from configparser import NoOptionError, NoSectionError
 
 class Configuration():
   logger = logging.getLogger(__name__)
@@ -58,11 +33,33 @@ class Configuration():
 
   def __init__(self, path):
     self.configPath = path + '/agent.ini'
-    self.configuration = configparser.ConfigParser(interpolation=EnvInterpolation(self.logger))
+    self.configuration = configparser.ConfigParser()
     self.readFromFile()
+    self.overrideFromEnv()
 
   def readFromFile(self):
-      self.configuration.read(self.configPath)
+    self.configuration.read(self.configPath)
+
+  def overrideFromEnv(self):
+    """
+    expands environment variables starting with `C8Y` in values.
+    Mapping rules from environment variable name to config key:
+
+    - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
+    - Upper case letters are mapped to lower case letters
+    - Double underscore __ is mapped to .
+
+    e.g. `C8YDM_SECRET_C8Y__TENANT` is mapped to `c8y.tenant` in [secret] section.
+    """
+    prefix = 'C8YDM_'
+    envs = {k.replace(prefix, '', 1): v for k, v in os.environ.items() if k.startswith(prefix)}
+    for key, value in envs.items():
+      # note: '_' in category is not allowed
+      category, key0 = key.lower().split('_', 1)
+      key1 = key0.replace('__', '.')
+      # todo: print override env in debug log. you need to modify main.py
+      # because log level is known only after the creation of this object
+      self.setValue(category, key1, value)
 
   def getValue(self, category, key):
     try:
