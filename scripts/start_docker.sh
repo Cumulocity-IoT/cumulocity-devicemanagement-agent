@@ -5,7 +5,7 @@ set -euo pipefail
 CA_NAME="iot-ca"
 CERT_NAME="device-cert"
 
-if [ -n $C8YDM_MQTT_CERT_AUTH ] && [ $C8YDM_MQTT_CERT_AUTH = "true" ]; then
+if [ -n "${C8YDM_MQTT_CERT_AUTH:-}" ] && [ $C8YDM_MQTT_CERT_AUTH = "true" ]; then
     # use container id as serial
     ./scripts/generate_cert.sh \
     --serial $HOSTNAME \
