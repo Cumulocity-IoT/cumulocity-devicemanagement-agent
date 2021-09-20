@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import configparser, logging
+import configparser, logging, os
 from shutil import copyfile
 from configparser import NoOptionError, NoSectionError
 
@@ -35,9 +35,31 @@ class Configuration():
     self.configPath = path + '/agent.ini'
     self.configuration = configparser.ConfigParser()
     self.readFromFile()
+    self.overrideFromEnv()
 
   def readFromFile(self):
-      self.configuration.read(self.configPath)
+    self.configuration.read(self.configPath)
+
+  def overrideFromEnv(self):
+    """
+    expands environment variables starting with `C8Y` in values.
+    Mapping rules from environment variable name to config key:
+
+    - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
+    - Upper case letters are mapped to lower case letters
+    - Double underscore __ is mapped to .
+
+    e.g. `C8YDM_SECRET_C8Y__TENANT` is mapped to `c8y.tenant` in [secret] section.
+    """
+    prefix = 'C8YDM_'
+    envs = {k.replace(prefix, '', 1): v for k, v in os.environ.items() if k.startswith(prefix)}
+    for key, value in envs.items():
+      # note: '_' in category is not allowed
+      category, key0 = key.lower().split('_', 1)
+      key1 = key0.replace('__', '.')
+      # todo: print override env in debug log. you need to modify main.py
+      # because log level is known only after the creation of this object
+      self.setValue(category, key1, value)
 
   def getValue(self, category, key):
     try:

@@ -89,4 +89,6 @@ RUN apt-get -y --purge autoremove \
     python3-stdeb \
     python3-setuptools
 
-CMD service ssh start && exec c8ydm.start
+COPY ./scripts ./scripts
+
+CMD scripts/start_docker.sh
