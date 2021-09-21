@@ -8,9 +8,9 @@ To quickly run the agent just make sure that Docker is installed on your compute
     ./start.sh
 
 in a console of your choice. The script will build a docker image and starting one instance afterwards.
-When bootstrapping is used the docker container Id is the device Id which should be entered when registering a device in cumulocity.
+Per default bootstrapping is used an no other information is necessary. In this case the docker container Id is the device Id which should be entered when registering a device in cumulocity.
 
-To connect to your own tenant, run
+If you want to use device certificates or override bootstrapping parameters use the following env variables:
 
 ```
 C8YDM_MQTT_URL=<tenant domain> \
