@@ -115,3 +115,49 @@ class RestClient():
                     return False
             except Exception as e:
                 self.logger.error('The following error occured: %s' % (str(e)))
+    
+    def get_all_dangling_operations(self, internal_id):
+        try:
+            url = f'{self.base_url}/devicecontrol/operations?status=EXECUTING&deviceId={internal_id}'
+            headers = self.get_auth_header()
+            headers['Content-Type'] ='application/json'
+            headers['Accept'] = 'application/json'
+            response = requests.request("GET", url, headers=headers)
+            self.logger.debug('Response from request: ' + str(response.text))
+            self.logger.debug('Response from request with code : ' + str(response.status_code))
+            if response.status_code == 200:
+                json_data = json.loads(response.text)
+                #operations = []
+                operations = json_data['operations']
+                #self.logger.info("The internalID for " + str(external_id) + " is " + str(internalID))
+                self.logger.debug(f'Returning Operations with status EXECUTING {operations}')
+                return operations
+            else:
+                self.logger.warning('Response from request: ' + str(response.text))
+                self.logger.warning('Got response with status_code: ' +
+                            str(response.status_code))
+                return None
+        except Exception as e:
+                self.logger.error('The following error occured: %s' % (str(e)))
+    
+    def set_operations_to_failed(self, operations):
+        if len(operations) > 0:
+            try:
+                for op in operations:
+                    url = f'{self.base_url}/devicecontrol/operations/{op["id"]}'
+                    headers = self.get_auth_header()
+                    headers['Content-Type'] ='application/json'
+                    headers['Accept'] = 'application/json'
+                    payload = {
+                        "status": "FAILED",
+                        "failureReason": "Operation unexpectedly interrupted. Check logs for details"
+                    }
+                    response = requests.request("PUT", url, headers=headers, data=json.dumps(payload))
+                    self.logger.debug('Response from request: ' + str(response.text))
+                    self.logger.debug('Response from request with code : ' + str(response.status_code))
+                    if response.status_code == 200:
+                        return True
+                    else:
+                        return False
+            except Exception as e:
+                    self.logger.error('The following error occured: %s' % (str(e)))   

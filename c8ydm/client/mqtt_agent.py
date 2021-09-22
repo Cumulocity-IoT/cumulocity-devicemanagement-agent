@@ -280,6 +280,11 @@ class Agent():
             token_thread.start()
             #_thread.start_new_thread(self.refresh_token)
             # refresh_token_thread.start()
+        # Set all dangling Operations to failed on Agent start
+        internald_id = self.rest_client.get_internal_id(self.serial)
+        ops = self.rest_client.get_all_dangling_operations(internald_id)
+        self.rest_client.set_operations_to_failed(ops)
+
 
     def __on_connect(self, client, userdata, flags, rc):
         try:
