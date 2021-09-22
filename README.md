@@ -186,6 +186,20 @@ You can generate certificates necessary to certficate authentication, and you ca
 
 After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001` in this case).
 
+### testing
+
+With the agent running in the container, execute
+
+```
+./test.sh \
+--url <tenant domain> \
+--tenant <tenant ID> \
+--username <username for the tenant> \
+--password <password for the tenant>
+```
+
+to run pytest.
+
 ## Extending the agent
 
 The agent knows three types of classes that it will automatically load and include from the "agentmodules" directory.
