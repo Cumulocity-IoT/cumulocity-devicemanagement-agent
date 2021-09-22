@@ -76,7 +76,8 @@ COPY ./config/agent.ini /root/.cumulocity/agent.ini
 
 # # Install requirements (using pip)
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+COPY tests/requirements.txt tests/requirements.txt
+RUN pip3 install -r requirements.txt -r tests/requirements.txt
 
 COPY setup.py .
 COPY ./c8ydm ./c8ydm
