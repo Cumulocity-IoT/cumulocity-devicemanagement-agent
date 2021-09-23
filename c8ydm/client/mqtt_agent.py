@@ -25,7 +25,6 @@ import paho.mqtt.client as mqtt
 
 import c8ydm.utils.moduleloader as moduleloader
 from c8ydm.client.rest_client import RestClient
-from c8ydm.core.command import CommandHandler
 from c8ydm.core.configuration import ConfigurationManager
 from c8ydm.framework.smartrest import SmartRESTMessage
 
@@ -191,7 +190,6 @@ class Agent():
         #self.__client.publish(
         #    "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
         #self.logger.info(f'Device published!')
-        commandHandler = CommandHandler(self.serial, self, self.configuration)
         configurationManager = ConfigurationManager(
             self.serial, self, self.configuration)
 
@@ -200,10 +198,7 @@ class Agent():
             self.logger.debug('Send topic: %s, msg: %s',
                               message.topic, message.getMessage())
             self.__client.publish(message.topic, message.getMessage())
-        self.__listeners.append(commandHandler)
         self.__listeners.append(configurationManager)
-        self.__supportedOperations.update(
-            commandHandler.getSupportedOperations())
         self.__supportedOperations.update(
             configurationManager.getSupportedOperations())
 
@@ -340,7 +335,7 @@ class Agent():
         self.logger.log(level, buf)
 
     def publishMessage(self, message, qos=0, wait_for_publish=False):
-        self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage}')
+        self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage()}')
         if self.__client is not None and self.__client.is_connected:
             if wait_for_publish:
                 self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish()

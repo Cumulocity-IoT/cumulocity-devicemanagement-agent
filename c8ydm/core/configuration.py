@@ -55,7 +55,7 @@ class ConfigurationManager(Listener, Initializer):
                 self.configuration.writeConfigString(message.values[1][1:-1])
                 success = SmartRESTMessage('s/us', '503', ['c8y_Configuration'])
                 configs = self.configuration.getConfigString()
-                self.agent.publishMessage(SmartRESTMessage('s/us', '113', ['"' + configs + '"']))
+                self.agent.publishMessage(SmartRESTMessage('s/us', '113', [configs]))
                 self.agent.publishMessage(success)
 
         except Exception as e:
@@ -74,5 +74,5 @@ class ConfigurationManager(Listener, Initializer):
 
     def getMessages(self):
         configs = self.configuration.getConfigString()
-        configMessage = SmartRESTMessage('s/us', '113', ['"' + configs + '"'])
+        configMessage = SmartRESTMessage('s/us', '113', [ configs ])
         return [configMessage]
