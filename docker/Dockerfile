@@ -54,7 +54,11 @@ RUN if [ "$INSTALL_VNC" = "1" ]; then \
         apt-get -y install \
         xfce4 \
         xfce4-goodies \
-        tightvncserver; \
+        tightvncserver \
+        # Set VNC server password
+        && mkdir /root/.vnc \
+        && echo test456# | vncpasswd -f > /root/.vnc/passwd \
+        && chmod 600 /root/.vnc/passwd; \
     fi
 
 # Set root passwd for container
@@ -97,11 +101,6 @@ RUN apt-get -y --purge autoremove \
     python3-wheel \
     python3-stdeb \
     python3-setuptools
-
-# Set VNC server password = test456#
-RUN mkdir ./.vnc
-COPY ./config/vncpasswd ./.vnc/passwd
-RUN chmod 600 ./.vnc/passwd
 
 COPY ./scripts ./scripts
 
