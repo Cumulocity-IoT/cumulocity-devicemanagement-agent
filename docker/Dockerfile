@@ -1,5 +1,6 @@
 FROM debian:10-slim
 ARG DEB_MIRROR=http://ftp.de.debian.org/debian
+ARG INSTALL_VNC=0
 
 # Install additional packages.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -47,6 +48,18 @@ RUN apt-get update \
     # Install Docker Compose
     && curl -sSL "https://github.com/docker/compose/releases/download/1.28.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
+
+# Install VNC server and desktop environment
+RUN if [ "$INSTALL_VNC" = "1" ]; then \
+        apt-get -y install \
+        xfce4 \
+        xfce4-goodies \
+        tightvncserver \
+        # Set VNC server password
+        && mkdir /root/.vnc \
+        && echo test456# | vncpasswd -f > /root/.vnc/passwd \
+        && chmod 600 /root/.vnc/passwd; \
+    fi
 
 # Set root passwd for container
 RUN mkdir /var/run/sshd

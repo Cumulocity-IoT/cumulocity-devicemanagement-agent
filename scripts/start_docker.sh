@@ -24,4 +24,8 @@ if [ -n "${C8YDM_MQTT_CERT_AUTH:-}" ] && [ $C8YDM_MQTT_CERT_AUTH = "true" ]; the
     export C8YDM_AGENT_DEVICE__ID=$HOSTNAME
 fi
 
+if which vncserver; then
+    USER=root vncserver &
+fi
+
 service ssh start && exec c8ydm.start
