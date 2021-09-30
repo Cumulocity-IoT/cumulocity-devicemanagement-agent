@@ -20,6 +20,12 @@ C8YDM_SECRET_C8Y__BOOTSTRAP__PASSWORD=<password used for bootstrapping> \
 ./start.sh
 ```
 
+If you want to use Cloud Remote Access with a VNC server, you can install the server and a desktop environment:
+
+```
+INSTALL_VNC=1 ./start.sh
+```
+
 If you don't want to run within docker follow the steps below.
 
 # Configuration
