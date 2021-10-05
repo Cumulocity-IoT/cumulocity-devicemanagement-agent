@@ -1,8 +1,7 @@
 FROM debian:10-slim
-ARG DEB_MIRROR=http://ftp.de.debian.org/debian
-ARG INSTALL_VNC=0
 
 # Install additional packages.
+ARG DEB_MIRROR=http://ftp.de.debian.org/debian
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINER=docker
 RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
@@ -50,6 +49,7 @@ RUN apt-get update \
     && chmod +x /usr/local/bin/docker-compose
 
 # Install VNC server and desktop environment
+ARG INSTALL_VNC=0
 RUN if [ "$INSTALL_VNC" = "1" ]; then \
         apt-get -y install \
         xfce4 \
@@ -84,23 +84,26 @@ COPY ./c8ydm ./c8ydm
 RUN pip3 install .
 
 # Clean up unnecessary packages
-RUN apt-get -y --purge autoremove \
-    git \
-    build-essential \
-    debhelper \
-    dh-python \
-    python-docutils \
-    python-sphinx \
-    fakeroot \
-    bash-completion \
-    locales \
-    aptly \
-    python3-all \
-    python3-pip \
-    python3-dev \
-    python3-wheel \
-    python3-stdeb \
-    python3-setuptools
+ARG CLEAN_PACKAGES=1
+RUN if [ "$CLEAN_PACKAGES" = "1" ]; then \
+        apt-get -y --purge autoremove \
+        git \
+        build-essential \
+        debhelper \
+        dh-python \
+        python-docutils \
+        python-sphinx \
+        fakeroot \
+        bash-completion \
+        locales \
+        aptly \
+        python3-all \
+        python3-pip \
+        python3-dev \
+        python3-wheel \
+        python3-stdeb \
+        python3-setuptools; \
+    fi
 
 COPY ./scripts ./scripts
 
