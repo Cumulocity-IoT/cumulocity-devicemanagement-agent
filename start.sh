@@ -1,7 +1,7 @@
 #!/bin/bash
 DOCKER_FILE_PATH=docker/Dockerfile
 DOCKER_IMAGE_NAME=c8ydm-image
-DOCKER_CONTAINER_NAME=c8ydm
+#DOCKER_CONTAINER_NAME=c8ydm
 # construct build args from env
 function env_build_arg() {
     BUILD_ARG_LIST=$(grep -oP '^ARG .*(?==)' "$DOCKER_FILE_PATH" | cut -d' ' -f2-)
@@ -25,5 +25,5 @@ then
 fi
 # load variables starting with "C8YDM"
 docker run --env-file <(env | grep C8YDM) \
-           --name $DOCKER_CONTAINER_NAME --rm $INTERACTIVITY_ARG \
+           --rm $INTERACTIVITY_ARG \
            -v /var/run/docker.sock:/var/run/docker.sock $DOCKER_IMAGE_NAME
