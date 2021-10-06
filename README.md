@@ -26,6 +26,12 @@ If you want to use Cloud Remote Access with a VNC server, you can install the se
 INSTALL_VNC=1 ./start.sh
 ```
 
+By default, the docker container runs in background. If you want to run it interactively:
+
+```
+INTERACTIVE=1 ./start.sh
+```
+
 If you don't want to run within docker follow the steps below.
 
 # Configuration
