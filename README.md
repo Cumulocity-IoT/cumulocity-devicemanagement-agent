@@ -8,17 +8,25 @@ To quickly run the agent just make sure that Docker is installed on your compute
     ./start.sh
 
 in a console of your choice. The script will build a docker image and starting one instance afterwards.
-Per default bootstrapping is used an no other information is necessary. In this case the docker container Id is the device Id which should be entered when registering a device in cumulocity.
+Per default Bootstrapping is used and no other information is necessary. In this case the docker **container Id** is the device Id which should be entered when [registering a device in cumulocity](https://www.cumulocity.com/guides/users-guide/device-management/#device-registration-manually).
 
-If you want to use device certificates or override bootstrapping parameters use the following env variables:
+You can find it out with:
+    
+    docker ps
+
+If you want to run the Agent without using docker you need to [build](#build) and  [run](#run) the Agent manually.
+## Quick Start Configuration
+
+The DM Agent configuration can be either set by changing the [agent.ini](./config/agent.ini) or setting variables **before** you build or start the container.
+For example to use [Device Certificates](https://cumulocity.com/guides/device-sdk/mqtt/#device-certificates) you can use the following ENV Variables.
 
 ```
 C8YDM_MQTT_URL=<tenant domain> \
-C8YDM_SECRET_C8Y__BOOTSTRAP__TENANT=<tenant ID> \
-C8YDM_SECRET_C8Y__BOOTSTRAP__USER=<username used for bootstrapping> \
-C8YDM_SECRET_C8Y__BOOTSTRAP__PASSWORD=<password used for bootstrapping> \
-./start.sh
+C8YDM_MQTT_CERT_AUTH=TRUE \
+C8YDM_MQTT_CLIENT_CERT=<path to cert file> \
+C8YDM_MQTT_CLIENT_KEY=<path to key file>
 ```
+As normal run ./start.sh afterwards.
 
 If you want to use Cloud Remote Access with a VNC server, you can install the server and a desktop environment:
 
@@ -105,6 +113,8 @@ Please note that in debian/ubuntu you need additionally install
     apt install python-apt
 
 via apt.
+
+Continue with chapter [Run](#run)
 ## Building debian package
 
 In order to build the .deb yourself first install python-stdeb via apt.
@@ -119,7 +129,9 @@ on the level of the setup.py.
 
 In oder to install the debian package locally run
 
-    apt install ./deb_dist/python-c8ydm_0.1-1_all.deb 
+    apt install ./deb_dist/python-c8ydm_0.1-1_all.deb
+
+Continue with chapter [Run](#run)
 
 ## Building docker image
 
@@ -198,7 +210,7 @@ You can generate certificates necessary to certficate authentication, and you ca
 
 After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001` in this case).
 
-### testing
+### Testing
 
 With the agent running in the container, execute
 
