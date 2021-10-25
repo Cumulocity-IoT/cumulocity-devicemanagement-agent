@@ -4,3 +4,4 @@ requests==2.25.1
 setuptools==54.1.2
 pyspectator==1.2.2
 c8y-device-proxy>=1.0.1
+certifi>=2021.10.8

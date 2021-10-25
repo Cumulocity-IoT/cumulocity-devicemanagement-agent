@@ -20,6 +20,7 @@ import time
 import ssl
 import _thread
 import threading
+import certifi
 import paho.mqtt.client as mqtt
 
 
@@ -49,7 +50,7 @@ class Agent():
         self.ping = self.configuration.getValue(
             'mqtt', 'ping.interval.seconds')
         self.tls = self.configuration.getBooleanValue('mqtt', 'tls')
-        self.cacert = self.configuration.getValue('mqtt', 'cacert')
+        #self.cacert = self.configuration.getValue('mqtt', 'cacert')
         self.cert_auth = self.configuration.getBooleanValue(
             'mqtt', 'cert_auth')
         self.client_cert = self.configuration.getValue('mqtt', 'client_cert')
@@ -127,14 +128,14 @@ class Agent():
             if self.tls:
                 if self.cert_auth:
                     self.logger.debug('Using certificate authenticaiton')
-                    self.__client.tls_set(self.cacert,
+                    self.__client.tls_set(certifi.where(),
                                           certfile=self.client_cert,
                                           keyfile=self.client_key,
                                           tls_version=ssl.PROTOCOL_TLSv1_2,
                                           cert_reqs=ssl.CERT_NONE
                                           )
                 else:
-                    self.__client.tls_set(self.cacert)
+                    self.__client.tls_set(certifi.where())
                     self.__client.username_pw_set(
                         credentials[0]+'/' + credentials[1], credentials[2])
             else:

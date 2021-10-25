@@ -19,6 +19,7 @@ limitations under the License.
 """
 import logging
 import time
+import certifi
 
 import paho.mqtt.client as mqtt
 
@@ -34,7 +35,7 @@ class Bootstrap():
         self.port = self.configuration.getValue('mqtt', 'port')
         self.ping = self.configuration.getValue('mqtt', 'ping.interval.seconds')
         self.tls = self.configuration.getBooleanValue('mqtt', 'tls')
-        self.cacert = self.configuration.getValue('mqtt', 'cacert')
+        #self.cacert = self.configuration.getValue('mqtt', 'cacert') 
         self.terminated = False
 
     def on_connect(self, client, userdata, flags, rc):
@@ -71,8 +72,8 @@ class Bootstrap():
         client.on_disconnect = self.on_disconnect
 
         credentials = self.configuration.getBootstrapCredentials()
-        if self.tls and self.cacert:
-             client.tls_set(self.cacert)
+        if self.tls:
+             client.tls_set(certifi.where())
         client.username_pw_set(credentials[0] + '/' + credentials[1], credentials[2])
         client.connect(self.url, int(self.port), int(self.ping))
 
