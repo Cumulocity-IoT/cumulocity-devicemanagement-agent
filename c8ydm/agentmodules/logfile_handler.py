@@ -53,7 +53,7 @@ class LogfileInitializer(Initializer, Listener):
         self.agent.publishMessage(failed)
     
     def handleOperation(self, message):
-        internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)  
+        mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)  
         try:
             if 's/ds' in message.topic and message.messageId == '522':
                 # When multiple operations received just take the first one for further processing
@@ -65,7 +65,7 @@ class LogfileInitializer(Initializer, Listener):
                 searchtext = message.values[4]
                 searchtext = searchtext.lower()
                 maximumlines = message.values[5]
-                print('\n deviceid: {}\n starttime: {}\n endtime: {}\n searchtext:{}\n maximumlines:{} \n'.format(deviceid, starttime, endtime, searchtext, maximumlines))
+                #print('\n deviceid: {}\n starttime: {}\n endtime: {}\n searchtext:{}\n maximumlines:{} \n'.format(deviceid, starttime, endtime, searchtext, maximumlines))
                 self._set_executing()
                 #self.logger.info('LogFile HandleOperation Called for '+ deviceid)
                 starttime = starttime.replace("T", " ")
@@ -103,9 +103,12 @@ class LogfileInitializer(Initializer, Listener):
                         memFile = io.BytesIO(newOutput.encode('utf8'))
                         payload = {'object' : '{"name" : "logfile'+ deviceid+'", "type" : "text/plain" }'}
                         file = [('file' , memFile)]
-                        binaryurl = self.agent.rest_client.upload_binary_logfile(internal_id, payload, file)
-                        self._set_success(binaryurl)
-                        self.logger.debug("LogHandler uploaded Binary under following URL: "+binaryurl)
+                        binaryurl = self.agent.rest_client.upload_event_logfile(mo_id, payload, file)
+                        if binaryurl:
+                            self._set_success(binaryurl)
+                            self.logger.debug("LogHandler uploaded Binary under following URL: "+binaryurl)
+                        else:
+                            self._set_failed('Could not upload logfile')
                                             
                     elif searchtext=='':
                         num_lines = len(fileLines)
@@ -127,11 +130,14 @@ class LogfileInitializer(Initializer, Listener):
                         memFile = io.BytesIO(newOutput.encode('utf8'))
                         payload = {'object' : '{"name" : "logfile'+ deviceid+'", "type" : "text/plain" }'}
                         file = [('file' , memFile)]
-                        binaryurl = self.agent.rest_client.upload_binary_logfile(internal_id, payload, file)
-                        self._set_success(binaryurl)
-                        self.logger.debug("LogHandler uploaded Binary under following URL: "+binaryurl)
+                        binaryurl = self.agent.rest_client.upload_event_logfile(mo_id, payload, file)
+                        if binaryurl:
+                            self._set_success(binaryurl)
+                            self.logger.debug("LogHandler uploaded Binary under following URL: "+binaryurl)
+                        else:
+                            self._set_failed('Could not upload logfile')
                     else:
-                        print('Searchstring is not inside file.')
+                        #print('Searchstring is not inside file.')
                         self._set_failed('Searchstring is not inside file')
                 #after the 'with' statement everything is closed to free the memorybuffer
                 f.close()
