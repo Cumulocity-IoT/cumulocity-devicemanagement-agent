@@ -74,7 +74,8 @@ class LogfileInitializer(Initializer, Listener):
                 endtime = datetime.fromisoformat(endtime[:16])
                 fileLines = []
                 searchtextindata = False
-                with open('/root/.cumulocity/agent.log', 'r') as f:
+                path = self.agent.path
+                with open(path / 'agent.log', 'r') as f:
                     for line in f:
                         stripped_line = line.strip().lower()
                         fileLines.append(stripped_line)
