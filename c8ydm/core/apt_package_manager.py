@@ -20,7 +20,7 @@ limitations under the License.
 import logging
 import platform
 from c8ydm.framework.smartrest import SmartRESTMessage
-if 'Debian' == platform.system():
+if 'Linux' == platform.system() and ('debian' == platform.linux_distribution()[0] or 'ubuntu' == platform.linux_distribution()[0]):
     import apt
 else:
     apt = None
