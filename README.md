@@ -148,7 +148,7 @@ docker build -t dm-image -f docker/Dockerfile .
 
 Before running the agent some manual steps need to be taken
 
-1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
+1. Manually put the [config file](./config/agent.ini) into {userfolder}/.cumulocity
 
 You can run the agent by executing
 
