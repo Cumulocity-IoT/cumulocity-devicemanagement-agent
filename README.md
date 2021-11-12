@@ -3,11 +3,11 @@ Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstr
 
 # Quick Start
 
-To quickly run the agent just make sure that Docker is installed on your computer (Linux Shell) and run
+To quickly run the agent just make sure that Docker is installed on your computer and run in a Linux Shell:
 
     ./start.sh
 
-In Windows shells like PS oder cmd please use
+In Windows Shells like PS or CMD run:
     
     start.bat
     
