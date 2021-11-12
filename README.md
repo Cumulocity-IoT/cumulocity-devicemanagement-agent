@@ -3,11 +3,15 @@ Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstr
 
 # Quick Start
 
-To quickly run the agent just make sure that Docker is installed on your computer an run
+To quickly run the agent just make sure that Docker is installed on your computer (Linux Shell) and run
 
     ./start.sh
 
-in a console of your choice. The script will build a docker image and starting one instance afterwards.
+In Windows shells like PS oder cmd please use
+    
+    start.bat
+    
+The script will build a docker image and starting one instance afterwards.
 Per default Bootstrapping is used and no other information is necessary. In this case the docker **container Id** is the device Id which should be entered when [registering a device in cumulocity](https://www.cumulocity.com/guides/users-guide/device-management/#device-registration-manually).
 
 You can find it out with:
