@@ -39,7 +39,7 @@ class AptPackageManager:
             cache.open()
 
             for pkg in cache:
-                if (pkg.is_installed and not pkg.shortname.startswith('lib')):
+                if (pkg.is_installed and not pkg.shortname.startswith('lib') and not pkg.shortname.startswith('python')):
                     allInstalled.append(pkg.shortname)
                     allInstalled.append(pkg.installed.version)
                     allInstalled.append('')
