@@ -47,7 +47,31 @@ class AptPackageManager:
             cache.close()
 
         return SmartRESTMessage('s/us', '116', allInstalled)
+    
+    def get_installed_software_json(self, with_update):
+        software_list = []
+        all_installed = {
+            "c8y_SoftwareList": software_list
+        }
+        if apt:
+            cache = apt.cache.Cache()
+            if with_update:
+                self.logger.info('Starting apt update....')
+                cache.update()
+                self.logger.info('apt update finished!')
+            cache.open()
+            for pkg in cache:
+                if (pkg.is_installed):
+                    software = {
+                        "name": pkg.shortname,
+			            "version": pkg.installed.version,
+			            "url": ""
+                    }
+                    software_list.append(software)
+            cache.close()
+        return all_installed
 
+    
     def install_software(self, software_to_install, with_update):
         errors = []
         if apt:

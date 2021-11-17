@@ -116,5 +116,7 @@ class SoftwareManager(Listener, Initializer):
         return []
 
     def getMessages(self):
-        installedSoftware = self.apt_package_manager.getInstalledSoftware(False)
-        return [installedSoftware]
+        installed_software = self.apt_package_manager.get_installed_software_json(False)
+        mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
+        self.agent.rest_client.update_managed_object(mo_id, json.dumps(installed_software))
+        return None
