@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='c8ydm',
-      version='0.1',
+      version='0.2',
       description='Cumulocity Device Management Agent',
       author='Tobias Sommer, Stefan Witschel, Marco Stoffel, Murat Bayram',
       license='Apache 2.0',
