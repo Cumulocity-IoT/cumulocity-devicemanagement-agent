@@ -19,6 +19,7 @@ limitations under the License.
 """
 import logging
 import re
+import sys
 from typing import List, Optional
 from c8ydm.framework.smartrest import SmartRESTMessage
 from c8ydm.framework.modulebase import Listener
@@ -119,7 +120,10 @@ class CommandHandler(Listener):
 
                 _, output_text = resolved_cmd.execute_command(
                     raw_cmd, timeout=60)
-                self._set_success_with_result(output_text)
+                if sys.getsizeof(output_text) > 16000:
+                    self._set_failed(f'Output of command exceeds 16 KB Payload Limit')
+                else:
+                    self._set_success_with_result(output_text)
 
             except (InvalidCommandError, CommandFailedError, CommandTimeoutError) as ex:
                 logging.error(f'Command error. Exception={ex}')
