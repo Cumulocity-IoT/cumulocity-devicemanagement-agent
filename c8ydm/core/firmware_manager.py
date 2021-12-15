@@ -20,6 +20,7 @@ limitations under the License.
 import logging
 import os
 import platform
+import distro
 
 class FirmwareManager:
     logger = logging.getLogger(__name__)
@@ -36,13 +37,16 @@ class FirmwareManager:
         if 'Windows' == platform.system():
             return platform.system()
         else:
-            return self._get_linux_dist()[0]
+            return self._get_linux_dist_name()
 
     def get_dist_version(self):
         if 'Windows' == platform.system():
             return platform.uname().release
         else:
-            return self._get_linux_dist()[1]
+            return self._get_linux_dist_version()
 
-    def _get_linux_dist(self):
-        return platform.linux_distribution()
+    def _get_linux_dist_name(self):
+        return distro.id()
+    
+    def _get_linux_dist_version(self):
+        return distro.version()

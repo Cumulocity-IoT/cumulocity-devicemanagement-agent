@@ -103,13 +103,13 @@ Mapping rules:
 The agent can be build in multiple ways.
 ## Building via pip
 
-To build the agent via pip just run
+To build the agent via pip just run (as a root user, otherwise add "sudo" prior all commands).
 
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
 
  to install dependencies and afterwards
 
-    pip install .
+    pip3 install .
 
 to build the agent itself.
 Please note that in debian/ubuntu you need additionally install
@@ -154,10 +154,10 @@ Before running the agent some manual steps need to be taken
 
 1. Manually put the [config file](./config/agent.ini) into {userfolder}/.cumulocity
 
-You can run the agent by executing
+You can run the agent by executing (as root, otherwise add "sudo")
 
 ```console
-sudo c8ydm.start
+c8ydm.start
 ```
 in your console when you used [Building via pip](#building-via-pip) to build and install the agent.
 
@@ -167,10 +167,10 @@ Before running the agent some manual steps need to be taken
 
 1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
 
-You can run the agent by executing
+You can run the agent by executing (as root, otherwise add "sudo")
 
 ```console
-sudo c8ydm.start
+c8ydm.start
 ```
 in your console when you used [Building via deb](#building-debian-package) to build and install the agent.
 
