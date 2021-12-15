@@ -54,26 +54,8 @@ The agent can be configured via the agent.ini which must be placed in
 
 When running in docker container the agent.ini can be mounted to the /root/.cumulocity/agent.ini
 
-Below a reference agent.ini is proviced:
+Yoo can find a reference agent.ini [here](/config/agent.ini)
 
-```console
-[mqtt]
-url = mqtt.eu-latest.cumulocity.com
-port = 8883
-tls = true
-cert_auth = false
-client_cert = s7y_pi.crt
-client_key = s7y_pi.key
-cacert = /etc/ssl/certs/ca-certificates.crt
-ping.interval.seconds = 60
-
-[agent]
-name = dm-example-device
-type = c8y_dm_example_device
-main.loop.interval.seconds = 10
-requiredinterval = 10
-loglevel = INFO
-```
 | Category | Property   | Description
 | ---------|:----------:|:-----------
 | mqtt     | url        | The URL of the Cumulocity MQTT endpoint
