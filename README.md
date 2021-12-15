@@ -54,7 +54,7 @@ The agent can be configured via the agent.ini which must be placed in
 
 When running in docker container the agent.ini can be mounted to the /root/.cumulocity/agent.ini
 
-Yoo can find a reference agent.ini [here](/config/agent.ini)
+You can find a reference agent.ini [here](/config/agent.ini)
 
 | Category | Property   | Description
 | ---------|:----------:|:-----------
