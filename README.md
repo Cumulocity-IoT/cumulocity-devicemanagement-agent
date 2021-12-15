@@ -167,6 +167,15 @@ in your console when you used [Building Docker Image](#building-docker-image) to
 
 The config can be mounted the container. Otherwise the default config will be used.
 
+## Mass deployment
+
+You can run multiple instances of an container via:
+
+```console
+. mass_start.sh 5
+```
+
+where in this example 5 is the number of agent instances.
 # Develop
 
 ## Dev Container
