@@ -1,0 +1,13 @@
+[Unit]
+Description=Cumulocity DM Agent
+After=multi-user.target
+
+[Service]
+User=root
+ExecStart=c8ydm.start
+Restart=always
+RestartSec=3
+
+
+[Install]
+WantedBy=multi-user.target

@@ -31,7 +31,8 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     geoip-database \
     geoip-database-extra
 
-RUN locale-gen en_US.UTF-8 # Fix locale errors
+# Fix locale errors
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 #
 # Install Docker CE CLI
@@ -75,8 +76,11 @@ COPY ./config/agent.ini /root/.cumulocity/agent.ini
 
 # # Install requirements (using pip)
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+COPY tests/requirements.txt tests/requirements.txt
+RUN pip3 install -r requirements.txt -r tests/requirements.txt
 
 COPY setup.py .
 COPY ./c8ydm ./c8ydm
 RUN pip3 install .
+
+COPY ./scripts ./scripts

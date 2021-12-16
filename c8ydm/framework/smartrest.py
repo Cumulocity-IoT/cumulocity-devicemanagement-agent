@@ -25,4 +25,18 @@ class SmartRESTMessage:
     self.values = values
 
   def getMessage(self):
-    return str(self.messageId) + ',' + ','.join(map(str,self.values))
+    values = []
+    # Applies the necessary SmartREST escaping to any string passed to the function
+    for value in map(str, self.values):
+      value = value.replace('"', '""')
+
+      should_escape = '"' in value or ',' in value or '\n' in value or \
+        '\r' in value or '\t' in value or value.startswith(' ') or \
+          value.endswith(' ')
+
+      if should_escape:
+        value = '"{}"'.format(value)
+
+      values.append(value)
+    msg = str(self.messageId) + ',' + ','.join(map(str,values))
+    return msg.rstrip(', ')

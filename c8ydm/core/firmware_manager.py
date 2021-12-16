@@ -25,15 +25,24 @@ class FirmwareManager:
     logger = logging.getLogger(__name__)
 
     def get_current_kernel_version(self):
-        os_info = os.uname()
-        kernel = os_info.release
-        return kernel
+        if 'Windows' == platform.system():
+            return platform.uname().version
+        else:
+            os_info = platform.uname()
+            kernel = os_info.release
+            return kernel
     
     def get_dist_name(self):
-        return self._get_linux_dist()[0]
+        if 'Windows' == platform.system():
+            return platform.system()
+        else:
+            return self._get_linux_dist()[0]
 
     def get_dist_version(self):
-        return self._get_linux_dist()[1]
+        if 'Windows' == platform.system():
+            return platform.uname().release
+        else:
+            return self._get_linux_dist()[1]
 
     def _get_linux_dist(self):
         return platform.linux_distribution()

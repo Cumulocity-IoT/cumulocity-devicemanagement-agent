@@ -28,28 +28,40 @@ import pathlib
 from os.path import expanduser
 from logging.handlers import RotatingFileHandler
 import signal
+
+from paho.mqtt.client import LOGGING_LEVEL
 import c8ydm.utils.systemutils as systemutils
 from c8ydm.client import Agent
 from c8ydm.client import Bootstrap
 from c8ydm.utils import Configuration
 
 agent = None
+bootstrap_agent = None
 terminated = False
+simulated = False
 
 def handle_sigterm(*args):
-    raise KeyboardInterrupt
+    global terminated
+    if not terminated:
+        raise KeyboardInterrupt
 
 def keyboard_interupt_hook(exctype, value, traceback):
     try:
+        global terminated
         if exctype == KeyboardInterrupt:
-            logging.info(f'KeyboardInterrupt called!')
-            global agent
-            if agent:
-                agent.stop()
-            stop()
-            sys.exit(0)
-        else:
-            sys.__excepthook__(exctype, value, traceback)
+            if not terminated:
+                logging.info(f'KeyboardInterrupt called!')
+                terminated = True
+                global agent
+                if agent:
+                    agent.stop()
+                global bootstrap_agent
+                if bootstrap_agent:
+                    bootstrap_agent.stop()
+                stop()
+                sys.exit(0)
+        #else:
+        #    sys.__excepthook__(exctype, value, traceback)
     except Exception as ex:
         logging.error(ex)
 
@@ -58,15 +70,19 @@ def start():
     try:
         sys.excepthook = keyboard_interupt_hook
         global agent
+        global simulated
         agent = None
         signal.signal(signal.SIGTERM, handle_sigterm)
         home = expanduser('~')
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
         path = pathlib.Path(home + '/.cumulocity')
         path.mkdir(parents=True, exist_ok=True)
+        config_path = pathlib.Path(path / 'agent.ini')
+        if not config_path.is_file():
+            sys.exit(f'No agent.ini found in "{path}". Create it to properly configure the agent.')
         config = Configuration(str(path))
-        simulated = False
         loglevel = config.getValue('agent', 'loglevel')
-        logger = logging.getLogger()
         logger.setLevel(loglevel)
         log_file_formatter = logging.Formatter(
             '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
@@ -137,7 +153,7 @@ def start():
                 return        
         agent.run()
     except Exception as ex:
-        logger.error(f'Error on main start {ex}')
+        logger.exception(f'Error on main start {ex}', ex)
         
 
 
@@ -158,14 +174,16 @@ def stopDaemon(pidfile):
 
     if not pid:
         return
-    
+    else:
+        delpid(pidfile)
     # Try killing the daemon process
     try:
         while 1:
-            if not terminated:
-                os.kill(pid, signal.SIGTERM)
-                time.sleep(0.1)
-                delpid(pidfile)
+            #if not terminated:
+            logging.debug(f'Try killing pid {pid}')
+            os.kill(pid, signal.SIGKILL)
+            time.sleep(0.1)
+                
     except OSError as err:
         e = str(err.args)
         if e.find("No such process") > 0:
@@ -174,6 +192,7 @@ def stopDaemon(pidfile):
         else:
             print(str(err.args))
             sys.exit(1)
+    
 
 
 def delpid(pidfile):
@@ -187,6 +206,7 @@ def startDaemon(pidfile):
     print("Starting...")
     # Check for a pidfile to see if the daemon already runs
     pid = None
+    global simulated
     try:
         with open(pidfile, 'r') as pf:
             pid = int(pf.read().strip())
@@ -195,7 +215,7 @@ def startDaemon(pidfile):
         pid = None
 
     if pid:
-        if not isPidRunning(pid):
+        if simulated or not isPidRunning(pid):
             delpid(pidfile)
             pid = str(os.getpid())
             with open(pidfile, 'w+') as f:

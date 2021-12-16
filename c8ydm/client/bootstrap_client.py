@@ -19,6 +19,7 @@ limitations under the License.
 """
 import logging
 import time
+import certifi
 
 import paho.mqtt.client as mqtt
 
@@ -34,7 +35,8 @@ class Bootstrap():
         self.port = self.configuration.getValue('mqtt', 'port')
         self.ping = self.configuration.getValue('mqtt', 'ping.interval.seconds')
         self.tls = self.configuration.getBooleanValue('mqtt', 'tls')
-        self.cacert = self.configuration.getValue('mqtt', 'cacert')
+        #self.cacert = self.configuration.getValue('mqtt', 'cacert') 
+        self.terminated = False
 
     def on_connect(self, client, userdata, flags, rc):
         self.logger.debug('Bootstrap connected with result code: ' + str(rc))
@@ -71,14 +73,14 @@ class Bootstrap():
 
         credentials = self.configuration.getBootstrapCredentials()
         if self.tls:
-             client.tls_set(self.cacert)
+             client.tls_set(certifi.where())
         client.username_pw_set(credentials[0] + '/' + credentials[1], credentials[2])
         client.connect(self.url, int(self.port), int(self.ping))
 
         client.loop_start()
         client.publish('s/ucr')
 
-        while not self.bootstrapped:
+        while not self.bootstrapped and not self.terminated:
             time.sleep(5)
             self.logger.debug('poll credentials')
             client.publish('s/ucr')
@@ -90,3 +92,7 @@ class Bootstrap():
         client = None
         time.sleep(5)
         self.logger.info('Stop bootstrap client')
+
+    def stop(self):
+        self.terminated = True
+    

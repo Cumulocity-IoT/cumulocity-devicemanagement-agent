@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+        agent:
+          build:
+            context: ../
+            dockerfile: ./docker/Dockerfile
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock

@@ -1,7 +1,7 @@
 FROM debian:10-slim
-ARG DEB_MIRROR=http://ftp.de.debian.org/debian
 
 # Install additional packages.
+ARG DEB_MIRROR=http://ftp.de.debian.org/debian
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINER=docker
 RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
@@ -15,6 +15,7 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     python3-wheel \
     python3-stdeb \
 	python3-websocket \
+    python3-requests \
 	python3-all \
     openssh-server \
     git \
@@ -37,15 +38,21 @@ RUN locale-gen en_US.UTF-8 # Fix locale errors
 # Install Docker CE CLI
 #
 RUN apt-get update \
-    && apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common lsb-release \
-    && curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | apt-key add - 2>/dev/null \
-    && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') $(lsb_release -cs) stable" \
-    && apt-get update \
-    && apt-get install -y docker-ce-cli \
-    #
-    # Install Docker Compose
-    && curl -sSL "https://github.com/docker/compose/releases/download/1.28.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && chmod +x /usr/local/bin/docker-compose
+    && apt-get install -y curl apt-utils \
+    && curl -sSL https://get.docker.com | sh
+
+# Install VNC server and desktop environment
+ARG INSTALL_VNC=0
+RUN if [ "$INSTALL_VNC" = "1" ]; then \
+        apt-get -y install \
+        xfce4 \
+        xfce4-goodies \
+        tightvncserver \
+        # Set VNC server password
+        && mkdir /root/.vnc \
+        && echo test456# | vncpasswd -f > /root/.vnc/passwd \
+        && chmod 600 /root/.vnc/passwd; \
+    fi
 
 # Set root passwd for container
 RUN mkdir /var/run/sshd
@@ -60,6 +67,7 @@ WORKDIR /root
 
 RUN mkdir $HOME/.cumulocity
 COPY ./config/agent.ini /root/.cumulocity/agent.ini
+COPY ./config/DM_Agent.json /root/.cumulocity/DM_Agent.json
 
 # # Install requirements (using pip)
 COPY ./requirements.txt .
@@ -69,4 +77,28 @@ COPY ./setup.py .
 COPY ./c8ydm ./c8ydm
 RUN pip3 install .
 
-CMD service ssh start && exec c8ydm.start
+# Clean up unnecessary packages
+ARG CLEAN_PACKAGES=1
+RUN if [ "$CLEAN_PACKAGES" = "1" ]; then \
+        apt-get -y --purge autoremove \
+        git \
+        build-essential \
+        debhelper \
+        dh-python \
+        python-docutils \
+        python-sphinx \
+        fakeroot \
+        bash-completion \
+        locales \
+        aptly \
+        python3-all \
+        python3-pip \
+        python3-dev \
+        python3-wheel \
+        python3-stdeb \
+        python3-setuptools; \
+    fi
+
+COPY ./scripts ./scripts
+
+CMD scripts/start_docker.sh

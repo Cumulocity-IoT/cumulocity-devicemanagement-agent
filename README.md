@@ -1,47 +1,225 @@
-# cumulocity-devicemanagement-agent
-Cumulocity Reference Agent written in Python to demonstrate most of the Device Management Capabilities of Cumulocity IoT
-# Building the debian package
+# Cumulocity IoT Device Management Reference Agent
+Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the [Device Management Capabilities](https://cumulocity.com/guides/users-guide/device-management/) of [Cumulocity IoT](https://www.softwareag.cloud/site/product/cumulocity-iot.html)
 
-In order to build the .deb yourself first install python-stdeb via apt. Afterwards run
+# Quick Start
+
+To quickly run the agent just make sure that Docker is installed on your computer and run in a Linux Shell:
+
+    ./start.sh
+
+In Windows Shells like PS or CMD run:
+    
+    start.bat
+    
+The script will build a docker image and starting one instance afterwards.
+Per default Bootstrapping is used and no other information is necessary. In this case the docker **container Id** is the device Id which should be entered when [registering a device in cumulocity](https://www.cumulocity.com/guides/users-guide/device-management/#device-registration-manually).
+
+You can find it out with:
+    
+    docker ps
+
+If you want to run the Agent without using docker you need to [build](#build) and  [run](#run) the Agent manually.
+## Quick Start Configuration
+
+The DM Agent configuration can be either set by changing the [agent.ini](./config/agent.ini) or setting variables **before** you build or start the container.
+For example to use [Device Certificates](https://cumulocity.com/guides/device-sdk/mqtt/#device-certificates) you can use the following ENV Variables.
+
+```
+C8YDM_MQTT_URL=<tenant domain> \
+C8YDM_MQTT_CERT_AUTH=TRUE \
+C8YDM_MQTT_CLIENT_CERT=<path to cert file> \
+C8YDM_MQTT_CLIENT_KEY=<path to key file>
+```
+As normal run ./start.sh afterwards.
+
+If you want to use Cloud Remote Access with a VNC server, you can install the server and a desktop environment:
+
+```
+INSTALL_VNC=1 ./start.sh
+```
+
+By default, the docker container runs in background. If you want to run it interactively:
+
+```
+INTERACTIVE=1 ./start.sh
+```
+
+If you don't want to run within docker follow the steps below.
+
+# Configuration
+
+The agent can be configured via the agent.ini which must be placed in 
+
+    {userFolder}/.cumulocity
+
+When running in docker container the agent.ini can be mounted to the /root/.cumulocity/agent.ini
+
+Yoo can find a reference agent.ini [here](/config/agent.ini)
+
+| Category | Property   | Description
+| ---------|:----------:|:-----------
+| mqtt     | url        | The URL of the Cumulocity MQTT endpoint
+| mqtt     | port       | The Port of the Cumulocity MQTT endpoint
+| mqtt     | tls        | True when using port 8883, false when using port 1883 
+| mqtt     | cert_auth  | true when you want use Device Certificates for Device Authentication
+| mqtt     | client_cert | Path to your cert which should be used to for Authentication
+| mqtt     | client_key  | Path to your private key for Authentication
+| mqtt     | ping.interval.seconds | Interval in seconds for the mqtt client to send pings to MQTT Broker to keep the connection alive.
+| agent    | name       | The prefix name of the Device in Cumulocity. The serial will be attached with a "-" e.g. dm-example-device-1234567.
+| agent    | type       | The Device Type in Cumulocity
+| agent    | main.loop.interval.seconds | The interval in seconds sensor data will be forwarded to Cumulocity
+| agent    | requiredinterval | The interval in minutes for Cumulocity to detect that the device is online/offline.
+| agent    | loglevel   | The log level to write and print to file/console. 
+
+## Environment variables
+
+The environment variables which with C8YDM_ prefix are mapped to configuration files.
+Mapping rules:
+
+  - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
+  - Upper case letters are mapped to lower case letters
+  - Double underscore __ is mapped to .
+
+# Build
+
+The agent can be build in multiple ways.
+## Building via pip
+
+To build the agent via pip just run
+
+    pip install -r requirements.txt
+
+ to install dependencies and afterwards
+
+    pip install .
+
+to build the agent itself.
+Please note that in debian/ubuntu you need additionally install
+
+    apt install python-apt
+
+via apt.
+
+Continue with chapter [Run](#run)
+## Building debian package
+
+In order to build the .deb yourself first install python-stdeb via apt.
+
+    apt install python-stdeb
+
+ Afterwards run
 
     python setup.py --command-packages=stdeb.command bdist_deb
 
 on the level of the setup.py.
 
-# Installing the debian package
-
 In oder to install the debian package locally run
 
-    apt install ./deb_dist/python-c8ydm_0.1-1_all.deb 
+    apt install ./deb_dist/python-c8ydm_0.1-1_all.deb
 
-The package is also already available under https://packagecloud.io/tyrmanuz/poc
-Follow the install instructions on the repository to configure your apt to be able to install from the repository.
+Continue with chapter [Run](#run)
 
-Additionally you need to install the following package
+## Building docker image
 
-    apt install python-apt
+To build a docker image you can make use of the provided [Dockerfile](./docker/Dockerfile).
 
-Note: This is not yet bundled correctly as a dependency therefore manual installation is necessary
+Example:
+```console
+docker build -t dm-image -f docker/Dockerfile .
+```
 
-# Running the agent
+# Run
+
+## Python
 
 Before running the agent some manual steps need to be taken
 
-1. Install the python dependencies from requirements.txt as they are not yet bundled into the debian package
-2. Manually but the config files into /root/.cumulocity
+1. Manually put the [config file](./config/agent.ini) into {userfolder}/.cumulocity
 
-Afterwards agent can be started
+You can run the agent by executing
 
-    sudo c8ydm.start
+```console
+sudo c8ydm.start
+```
+in your console when you used [Building via pip](#building-via-pip) to build and install the agent.
 
-Note: The agent is not yet realized as a daemon. The above call will be blocking. Ensure to run as root other with the debian package management does not work.
+## apt / Debian package
 
-# Bootstrapping
+Before running the agent some manual steps need to be taken
 
-By default after installation the agent points to mqtt.cumulocity.com. This value can be changed in the configuration file after installation.
-The agent uses bootstrap credentials and the serialNumber is printed in the log on boot.
+1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
 
-# Extending the agent
+You can run the agent by executing
+
+```console
+sudo c8ydm.start
+```
+in your console when you used [Building via deb](#building-debian-package) to build and install the agent.
+
+## Docker
+
+You can run the agent by executing
+
+```console
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock dm-image
+```
+in your console when you used [Building Docker Image](#building-docker-image) to build and install the agent.
+
+The config can be mounted the container. Otherwise the default config will be used.
+
+## Mass deployment
+
+You can run multiple instances of an container via:
+
+```console
+. mass_start.sh 5
+```
+
+where in this example 5 is the number of agent instances.
+# Develop
+
+## Dev Container
+The project comes with VS Code devcontainer support. Make sure you use [Visual Studio Code](https://code.visualstudio.com/) in combination with docker. Just open the project in VS Code and click on "Reopen in Dev Container".
+
+In the background the Agent will be build and started. Also a debug/run configuration is provided so you can easilly start/debug the agent within VS Code. 
+
+### Using certificate authentication
+
+You can generate certificates necessary to certficate authentication, and you can upload the generated root certificate o your tenant's trusted certificate list by executing the scripts like below:
+
+```
+./scripts/generate_cert.sh \
+--serial pyagent0001 \
+--root-name iot-ca \
+--cert-dir /root/.cumulocity/certs \
+--cert-name device-cert
+
+./scripts/upload_cert.sh \
+--tenant-domain <tenant domain> \
+--tenant-id <tenant ID> \
+--username <username for the tenant> \
+--password <password for the tenant> \
+--cert-path /root/.cumulocity/certs/iot-ca.pem \
+--cert-name <(arbitrary) displayed name of the root certificate>
+```
+
+After this, you can connect the agent to your tenant using cert authentication (with the serial `pyagent0001` in this case).
+
+### Testing
+
+With the agent running in the container, execute
+
+```
+./test.sh \
+--url <tenant domain> \
+--tenant <tenant ID> \
+--username <username for the tenant> \
+--password <password for the tenant>
+```
+
+to run pytest.
+
+## Extending the agent
 
 The agent knows three types of classes that it will automatically load and include from the "agentmodules" directory.
 

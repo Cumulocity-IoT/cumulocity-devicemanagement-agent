@@ -33,23 +33,28 @@ class Network(Initializer):
     geo_pos_resolver = GeoPositionResolver()
 
     def getMessages(self):
-        self.logger.info(f'Network Initializer called...')
-        computer = Computer()
         net_msg = None
-        with computer:
-            name = str(computer.network_interface.name)
-            mac = str(computer.network_interface.hardware_address)
-            ip = str(computer.network_interface.ip_address)
-            netmask = str(computer.network_interface.subnet_mask)
-            enabled = 1
-            net_msg = SmartRESTMessage('s/uc/'+self.xid, self.net_message_id, [self.serial, ip, netmask, name, enabled, mac])
-        
-        pub_ip = self.get_public_ip()
-        lat_lng = self.geo_pos_resolver.get_pos_by_ip(pub_ip)
         pos_msg = None
-        if lat_lng and lat_lng['lat'] is not None and lat_lng['lng'] is not None:
-            pos_msg = SmartRESTMessage('s/us', self.pos_message_id, [lat_lng['lat'], lat_lng['lng']])
-        return [net_msg, pos_msg]
+        try:
+            self.logger.info(f'Network Initializer called...')
+            computer = Computer()
+            with computer:
+                name = str(computer.network_interface.name)
+                mac = str(computer.network_interface.hardware_address)
+                ip = str(computer.network_interface.ip_address)
+                netmask = str(computer.network_interface.subnet_mask)
+                enabled = 1
+                net_msg = SmartRESTMessage('s/uc/'+self.xid, self.net_message_id, [self.serial, ip, netmask, name, enabled, mac])
+            pub_ip = self.get_public_ip()
+            lat_lng = self.geo_pos_resolver.get_pos_by_ip(pub_ip)
+            
+            if lat_lng and lat_lng['lat'] is not None and lat_lng['lng'] is not None:
+                pos_msg = SmartRESTMessage('s/us', self.pos_message_id, [lat_lng['lat'], lat_lng['lng']])
+            return [net_msg, pos_msg]
+        except Exception as ex:
+            self.logger.error(f'Error on retrieving Network Details: {ex}')
+            return None
+        
     
     def get_public_ip(self):
         try:

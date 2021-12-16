@@ -22,7 +22,7 @@ from typing import List, Optional
 from requests.auth import HTTPBasicAuth
 from c8ydm.framework.modulebase import Listener
 from c8ydm.framework.smartrest import SmartRESTMessage
-from c8ydm.core.device_proxy import (DeviceProxy, WebSocketFailureException)
+from c8ydp.device_proxy import DeviceProxy, WebSocketFailureException
 from c8ydm.utils import Configuration
 
 class RemoteAccessListener(Listener):

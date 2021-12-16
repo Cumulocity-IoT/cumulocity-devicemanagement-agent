@@ -19,7 +19,6 @@ limitations under the License.
 """
 import logging
 import subprocess
-import apt
 import json
 from c8ydm.framework.smartrest import SmartRESTMessage
 

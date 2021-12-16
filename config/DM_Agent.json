@@ -9,7 +9,7 @@
         "msgId": "dm100",
         "api": "INVENTORY",
         "byId": false,
-        "mandatoryValues": [],
+        "externalIdType": "c8y_Serial",
         "customValues": [
           {
             "path": "c8y_Network.c8y_LAN.ip",
@@ -37,8 +37,35 @@
             "value": ""
           }
         ],
-        "externalIdType": "c8y_Serial",
+        "mandatoryValues": [],
         "name": "Network"
+      },
+      {
+        "method": "PUT",
+        "response": false,
+        "msgId": "dm200",
+        "api": "INVENTORY",
+        "byId": false,
+        "externalIdType": "c8y_Serial",
+        "customValues": [
+          {
+            "path": "c8y_Agent.name",
+            "type": "STRING",
+            "value": null
+          },
+          {
+            "path": "c8y_Agent.version",
+            "type": "STRING",
+            "value": ""
+          },
+          {
+            "path": "c8y_Agent.url",
+            "type": "STRING",
+            "value": ""
+          }
+        ],
+        "mandatoryValues": [],
+        "name": "Agent"
       }
     ],
     "responseTemplates": [
@@ -54,17 +81,6 @@
           "c8y_Docker.options.ports",
           "c8y_Docker.containerID",
           "c8y_Docker.name"
-        ]
-      },
-      {
-        "msgId": "dm600",
-        "condition": "c8y_RemoteAccessConnect",
-        "base": "",
-        "name": "Cloud Remote Access Operation",
-        "pattern": [
-          "c8y_RemoteAccessConnect.hostname",
-          "c8y_RemoteAccessConnect.port",
-          "c8y_RemoteAccessConnect.connectionKey"
         ]
       }
     ]

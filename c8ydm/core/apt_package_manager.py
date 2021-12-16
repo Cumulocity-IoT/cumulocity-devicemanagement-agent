@@ -20,77 +20,114 @@ limitations under the License.
 import logging
 import platform
 from c8ydm.framework.smartrest import SmartRESTMessage
-if 'debian' in platform.dist():
+if 'Linux' == platform.system() and ('debian' == platform.linux_distribution()[0] or 'ubuntu' == platform.linux_distribution()[0]):
     import apt
+else:
+    apt = None
 
 class AptPackageManager:
     logger = logging.getLogger(__name__)
 
     def getInstalledSoftware(self, with_update):
         allInstalled = []
+        if apt:
+            cache = apt.cache.Cache()
+            if with_update:
+                self.logger.info('Starting apt update....')
+                cache.update()
+                self.logger.info('apt update finished!')
+            cache.open()
 
-        cache = apt.cache.Cache()
-        if with_update:
-            self.logger.info('Starting apt update....')
-            cache.update()
-            self.logger.info('apt update finished!')
-        cache.open()
+            for pkg in cache:
+                if (pkg.is_installed and not pkg.shortname.startswith('lib') and not pkg.shortname.startswith('python')):
+                    allInstalled.append(pkg.shortname)
+                    allInstalled.append(pkg.installed.version)
+                    allInstalled.append('')
 
-        for pkg in cache:
-            if (pkg.is_installed and not pkg.shortname.startswith('lib')):
-                allInstalled.append(pkg.shortname)
-                allInstalled.append(pkg.installed.version)
-                allInstalled.append('')
-
-        cache.close()
+            cache.close()
 
         return SmartRESTMessage('s/us', '116', allInstalled)
+    
+    def get_installed_software_json(self, with_update):
+        software_list = []
+        all_installed = {
+            "c8y_SoftwareList": software_list
+        }
+        if apt:
+            cache = apt.cache.Cache()
+            if with_update:
+                self.logger.info('Starting apt update....')
+                cache.update()
+                self.logger.info('apt update finished!')
+            cache.open()
+            for pkg in cache:
+                if (pkg.is_installed):
+                    software = {
+                        "name": pkg.shortname,
+			            "version": pkg.installed.version,
+			            "url": ""
+                    }
+                    software_list.append(software)
+            cache.close()
+        return all_installed
 
+    
     def install_software(self, software_to_install, with_update):
-        cache = apt.cache.Cache()
-        if with_update:
-            self.logger.info('Starting apt update....')
-            cache.update()
-            self.logger.info('apt update finished!')
-        cache.open()
-        for software in software_to_install:
-            name = software[0]
-            version = software[1]
-            # url = software[2]
-            action = software[3]
-            pkg = cache[name]
-            if action == 'install':
-                if version == 'latest':
-                    self.logger.info('install ' + pkg.shortname + '=latest')
-                    pkg.mark_install()
+        errors = []
+        if apt:
+            cache = apt.cache.Cache()
+            if with_update:
+                self.logger.info('Starting apt update....')
+                cache.update()
+                self.logger.info('apt update finished!')
+            cache.open()
+            for software in software_to_install:
+                name = software[0]
+                version = software[1]
+                # url = software[2]
+                action = software[3]
+                pkg = cache[name]
+                if pkg is None:
+                    errors.append('No Software found with name '+ name)
                 else:
-                    self.logger.info(
-                        'install ' + pkg.shortname + '=' + version)
-                    candidate = pkg.versions.get(version)
-                    pkg.candidate = candidate
-                    pkg.mark_install()
-            # Software currently installed in the same version
-            if action == 'update' and pkg.is_installed and pkg.installed.version == version:
-                # no action needed
-                self.logger.debug('existing ' + pkg.shortname +
-                                '=' + pkg.installed.version)
-            if action == 'update' and pkg.is_installed and pkg.installed.version != version:
-                self.logger.info('install ' + pkg.shortname + '=' + version)
-                candidate = pkg.versions.get(version)
-                pkg.candidate = candidate
-                pkg.mark_install()
-            if action == 'delete' and pkg.is_installed:
-                self.logger.info('delete ' + pkg.shortname +
-                                '=' + pkg.installed.version)
-                pkg.mark_delete()
-        try:
-            self.logger.info('Starting apt install/removal of Software..')
-            cache.commit()
-            self.logger.info("Install/Removal of Software finished!")
-        except Exception as e:
-            self.logger.error(e)
+                    if action == 'install':
+                        if version == 'latest':
+                            self.logger.info('install ' + pkg.shortname + '=latest')
+                            pkg.mark_install()
+                        else:
+                            self.logger.info(
+                                'install ' + pkg.shortname + '=' + version)
+                            candidate = pkg.versions.get(version)
+                            if candidate == None:
+                                errors.append('Version '+ version +' not available in Repo!')
+                            else:
+                                pkg.candidate = candidate
+                                pkg.mark_install()
+                    # Software currently installed in the same version
+                    if action == 'update' and pkg.is_installed and pkg.installed.version == version:
+                        # no action needed
+                        self.logger.debug('existing ' + pkg.shortname +
+                                        '=' + pkg.installed.version)
+                    if action == 'update' and pkg.is_installed and pkg.installed.version != version:
+                        self.logger.info('install ' + pkg.shortname + '=' + version)
+                        candidate = pkg.versions.get(version)
+                        if candidate == None:
+                                errors.append('Version '+ version +' not available in Repo!')
+                        else:
+                            pkg.candidate = candidate
+                            pkg.mark_install()
+                    if action == 'delete' and pkg.is_installed:
+                        self.logger.info('delete ' + pkg.shortname +
+                                        '=' + pkg.installed.version)
+                        pkg.mark_delete()
+            try:
+                self.logger.info('Starting apt install/removal of Software..')
+                cache.commit()
+                self.logger.info("Install/Removal of Software finished!")
+            except Exception as e:
+                self.logger.error(e)
 
-        return []
+        return errors
 
     """ Old Deprecated Version of Software Updates """
     def installSoftware(self, toBeInstalled, with_update):

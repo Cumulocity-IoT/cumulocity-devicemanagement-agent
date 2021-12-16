@@ -17,23 +17,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging, time, json
+import logging
+import time
 from c8ydm.framework.modulebase import Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
 
-class SmartRestInitializer(Initializer):
+
+class AgentInitializer(Initializer):
     logger = logging.getLogger(__name__)
+    agent_message_id = 'dm200'
+    xid = 'c8y-dm-agent-v1.0'
 
     def getMessages(self):
-        template_id = 'c8y-dm-agent-v2.0'
-        self.logger.info(f'SmartRest Template Initializer called...')
-        if not self.agent.rest_client.check_SmartRest_template_exists(template_id):
-            self.logger.info(f'SmartRest Template does not exist, creating....')
-            with open('/root/.cumulocity/DM_Agent.json') as f:
-                payload = f.read()
-                self.logger.debug(f'SmartRest Template readed from file: {payload}')
-            self.agent.rest_client.create_SmartRest_template(payload,template_id)
-            msg = SmartRESTMessage('s/us', '400', ['c8y_SmartRestTemplateUpload', 'C8Y DM Agent Uploaded a SmartRest Template'])
-        else:
-            self.logger.info(f'SmartRest Template found, skipping creation...')
-        return []
+        self.logger.info(f'Agent Initializer called...')
+        agent_msg = SmartRESTMessage(
+            's/uc/'+self.xid, self.agent_message_id, [self.serial, 'DM Reference Agent', '0.2', ''])
+        return [agent_msg]

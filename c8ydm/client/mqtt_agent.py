@@ -20,12 +20,12 @@ import time
 import ssl
 import _thread
 import threading
+import certifi
 import paho.mqtt.client as mqtt
 
 
 import c8ydm.utils.moduleloader as moduleloader
 from c8ydm.client.rest_client import RestClient
-from c8ydm.core.command import CommandHandler
 from c8ydm.core.configuration import ConfigurationManager
 from c8ydm.framework.smartrest import SmartRESTMessage
 
@@ -50,7 +50,7 @@ class Agent():
         self.ping = self.configuration.getValue(
             'mqtt', 'ping.interval.seconds')
         self.tls = self.configuration.getBooleanValue('mqtt', 'tls')
-        self.cacert = self.configuration.getValue('mqtt', 'cacert')
+        #self.cacert = self.configuration.getValue('mqtt', 'cacert')
         self.cert_auth = self.configuration.getBooleanValue(
             'mqtt', 'cert_auth')
         self.client_cert = self.configuration.getValue('mqtt', 'client_cert')
@@ -71,6 +71,21 @@ class Agent():
         else:
             self.model = 'raspberry'
 
+    def handle_sensor_message(self, sensor):
+        messages = sensor.getSensorMessages()
+        if messages is not None and len(messages) > 0:
+            for message in messages:
+                self.publishMessage(message)
+
+    def handle_initializer_message(self, initializer):
+        messages = initializer.getMessages()
+        if messages is not None and len(messages) > 0:
+            for message in messages:
+                if message:
+                    self.logger.debug('Send topic: %s, msg: %s',
+                                    message.topic, message.getMessage())
+                    self.publishMessage(message)
+
     def run(self):
         try:
             self.logger.info('Starting agent')
@@ -88,11 +103,11 @@ class Agent():
                 self.interval = int(self.configuration.getValue(
                     'agent', 'main.loop.interval.seconds'))
                 for sensor in self.__sensors:
-                    messages = sensor.getSensorMessages()
-                    if messages is None or len(messages) == 0:
-                        continue
-                    for message in messages:
-                        self.publishMessage(message)
+                    sensor_thread = threading.Thread(target=self.handle_sensor_message, args=(sensor,))
+                    sensor_thread.daemon = True
+                    sensor_thread.name = f'SensorThread-{sensor.__class__.__name__}'
+                    sensor_thread.start()
+                    #_thread.start_new_thread(self.handle_sensor_message, (sensor,))
                 time.sleep(self.interval)
         except Exception as e:
             self.logger.exception(f'Error in C8Y Agent: {e}', e)
@@ -113,14 +128,14 @@ class Agent():
             if self.tls:
                 if self.cert_auth:
                     self.logger.debug('Using certificate authenticaiton')
-                    self.__client.tls_set(self.cacert,
+                    self.__client.tls_set(certifi.where(),
                                           certfile=self.client_cert,
                                           keyfile=self.client_key,
                                           tls_version=ssl.PROTOCOL_TLSv1_2,
                                           cert_reqs=ssl.CERT_NONE
                                           )
                 else:
-                    self.__client.tls_set(self.cacert)
+                    self.__client.tls_set(certifi.where())
                     self.__client.username_pw_set(
                         credentials[0]+'/' + credentials[1], credentials[2])
             else:
@@ -168,13 +183,14 @@ class Agent():
                     'Error on polling for Pending Operations: ' + str(e))
 
     def __init_agent(self):
+        self.__listeners = []
+        self.__sensors = []
         # set Device Name
         msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
         self.publishMessage(msg, 2, wait_for_publish=True)
         #self.__client.publish(
         #    "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
         #self.logger.info(f'Device published!')
-        commandHandler = CommandHandler(self.serial, self, self.configuration)
         configurationManager = ConfigurationManager(
             self.serial, self, self.configuration)
 
@@ -183,10 +199,7 @@ class Agent():
             self.logger.debug('Send topic: %s, msg: %s',
                               message.topic, message.getMessage())
             self.__client.publish(message.topic, message.getMessage())
-        self.__listeners.append(commandHandler)
         self.__listeners.append(configurationManager)
-        self.__supportedOperations.update(
-            commandHandler.getSupportedOperations())
         self.__supportedOperations.update(
             configurationManager.getSupportedOperations())
 
@@ -217,13 +230,11 @@ class Agent():
             else:
                 currentInitializer = initializer(self.serial, self)
                 classCache[initializer.__name__] = currentInitializer
-            messages = currentInitializer.getMessages()
-            if messages is None or len(messages) == 0:
-                continue
-            for message in messages:
-                self.logger.debug('Send topic: %s, msg: %s',
-                                  message.topic, message.getMessage())
-                self.__client.publish(message.topic, message.getMessage())
+            init_thread = threading.Thread(target=self.handle_initializer_message, args=(currentInitializer,))
+            init_thread.daemon = True
+            init_thread.name = f'InitializerThread-{currentInitializer.__class__.__name__}'
+            init_thread.start()
+            #_thread.start_new_thread(self.handle_initializer_message, (currentInitializer,))
 
         classCache = None
 
@@ -259,8 +270,17 @@ class Agent():
             self.__client.subscribe('s/dc/' + xid)
         if self.cert_auth:
             self.logger.info("Starting refresh token thread ")
-            _thread.start_new_thread(self.refresh_token)
+            token_thread = threading.Thread(target=self.refresh_token)
+            token_thread.daemon = True
+            token_thread.name = f'TokenThread-1'
+            token_thread.start()
+            #_thread.start_new_thread(self.refresh_token)
             # refresh_token_thread.start()
+        # Set all dangling Operations to failed on Agent start
+        internald_id = self.rest_client.get_internal_id(self.serial)
+        ops = self.rest_client.get_all_dangling_operations(internald_id)
+        self.rest_client.set_operations_to_failed(ops)
+
 
     def __on_connect(self, client, userdata, flags, rc):
         try:
@@ -287,13 +307,16 @@ class Agent():
             self.logger.debug('Received: topic=%s msg=%s',
                           message.topic, message.getMessage())
             if message.messageId == '71':
-                fields = msg.split(",")
-                self.token = fields[1]
+                self.token = message.values[0]
                 self.logger.info('New JWT Token received')
             for listener in self.__listeners:
                 self.logger.debug('Trigger listener ' +
                               listener.__class__.__name__)
-                _thread.start_new_thread(listener.handleOperation, (message,))
+                listener_thread = threading.Thread(target=listener.handleOperation, args=(message,))
+                listener_thread.daemon = True
+                listener_thread.name = f'ListenerThread-{listener.__class__.__name__}'
+                listener_thread.start()
+                #_thread.start_new_thread(listener.handleOperation, (message,))
         except Exception as e:
             self.logger.error(f'Error on handling MQTT Message.', e)
 
@@ -313,11 +336,12 @@ class Agent():
         self.logger.log(level, buf)
 
     def publishMessage(self, message, qos=0, wait_for_publish=False):
-        self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage}')
-        if wait_for_publish:
-            self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish()
-        else:
-            self.__client.publish(message.topic, message.getMessage(), qos)
+        self.logger.debug(f'Send: topic={message.topic} msg={message.getMessage()}')
+        if self.__client is not None and self.__client.is_connected:
+            if wait_for_publish:
+                self.__client.publish(message.topic, message.getMessage(), qos).wait_for_publish()
+            else:
+                self.__client.publish(message.topic, message.getMessage(), qos)
 
 
     def refresh_token(self):
