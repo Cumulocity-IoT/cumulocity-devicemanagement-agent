@@ -20,6 +20,8 @@ limitations under the License.
 import logging, time, json
 from c8ydm.framework.modulebase import Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
+from os.path import expanduser
+import pathlib
 
 class SmartRestInitializer(Initializer):
     logger = logging.getLogger(__name__)
@@ -29,11 +31,14 @@ class SmartRestInitializer(Initializer):
         self.logger.info(f'SmartRest Template Initializer called...')
         if not self.agent.rest_client.check_SmartRest_template_exists(template_id):
             self.logger.info(f'SmartRest Template does not exist, creating....')
-            with open('~/.cumulocity/DM_Agent.json') as f:
+            home = expanduser('~')
+            path = pathlib.Path(home + '/.cumulocity')
+            smart_rest_template_path = pathlib.Path(path / 'DM_Agent.json')
+            with open(smart_rest_template_path) as f:
                 payload = f.read()
                 self.logger.debug(f'SmartRest Template readed from file: {payload}')
             self.agent.rest_client.create_SmartRest_template(payload,template_id)
             msg = SmartRESTMessage('s/us', '400', ['c8y_SmartRestTemplateUpload', 'C8Y DM Agent Uploaded a SmartRest Template'])
+            return [msg]
         else:
             self.logger.info(f'SmartRest Template found, skipping creation...')
-        return []
