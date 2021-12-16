@@ -270,7 +270,7 @@ class RestClient():
                             str(response.status_code))
                 return False
         except Exception as e:
-            self.logger.error('The following error occured: %s' % (str(e)))    
+            self.logger.error('The following error occured while trying to create SmartRest template: %s' % (str(e)))    
 
     def check_SmartRest_template_exists(self,templateID):
         try:
@@ -291,5 +291,5 @@ class RestClient():
                 self.logger.warning('Got response with status_code: ' + str(response.status_code))
                 return False
         except Exception as e:
-            self.logger.error('The following error occured: %s' % (str(e)))
+            self.logger.error('The following error occured while trying to check for existing SmartRest templates: %s' % (str(e)))
             return False

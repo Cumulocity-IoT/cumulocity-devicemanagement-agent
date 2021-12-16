@@ -29,7 +29,7 @@ class SmartRestInitializer(Initializer):
         self.logger.info(f'SmartRest Template Initializer called...')
         if not self.agent.rest_client.check_SmartRest_template_exists(template_id):
             self.logger.info(f'SmartRest Template does not exist, creating....')
-            with open('/root/.cumulocity/DM_Agent.json') as f:
+            with open('~/.cumulocity/DM_Agent.json') as f:
                 payload = f.read()
                 self.logger.debug(f'SmartRest Template readed from file: {payload}')
             self.agent.rest_client.create_SmartRest_template(payload,template_id)
