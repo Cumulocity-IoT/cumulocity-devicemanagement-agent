@@ -147,7 +147,7 @@ in your console when you used [Building via pip](#building-via-pip) to build and
 
 Before running the agent some manual steps need to be taken
 
-1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
+1. Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into ~/.cumulocity folder. ~ stands for the current user folder. The SmartRESTTemplate will be automatically uploaded on first start.
 
 You can run the agent by executing (as root, otherwise add "sudo")
 
