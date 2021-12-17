@@ -248,15 +248,13 @@ class RestClient():
             headers['Accept'] = 'application/json'
             response = requests.request("POST", url, headers=headers, data = json.dumps(payload))
             if response.status_code == 200 or response.status_code==201:
-                self.logger.info('Template created')
                 json_data = json.loads(response.text)
-                self.logger.info(json_data['id'])
+                self.logger.info(f'Template created with id {json_data["id"]}')
                 payload = json.loads(f'{{"externalId": "{template_id}","type": "c8y_SmartRest2DeviceIdentifier"}}')
                 url = f'{self.base_url}/identity/globalIds/{json_data["id"]}/externalIds'
                 self.logger.debug(f'Sending Request for idenenity of smart rest template to url {url}')
                 response = requests.request("POST", url, headers=headers, data = json.dumps(payload))
                 if response.status_code == 200 or response.status_code==201:
-                    self.logger.info('Template id mapped')
                     self.logger.debug('Response from request of identity API for smart rest template: ' + str(response.text))
                     return True
                 else:

@@ -27,18 +27,26 @@ class SmartRestInitializer(Initializer):
     logger = logging.getLogger(__name__)
 
     def getMessages(self):
-        template_id = 'c8y-dm-agent-v2.0'
-        self.logger.info(f'SmartRest Template Initializer called...')
-        if not self.agent.rest_client.check_SmartRest_template_exists(template_id):
-            self.logger.info(f'SmartRest Template does not exist, creating....')
+        try:
+            template_id = None
+            self.logger.info(f'SmartRest Template Initializer called...')
             home = expanduser('~')
             path = pathlib.Path(home + '/.cumulocity')
             smart_rest_template_path = pathlib.Path(path / 'DM_Agent.json')
+            if not smart_rest_template_path.is_file():
+                self.logger.warn(f'DM_Agent.json not found in path {path}. Could not upload SmartREST Template.')
+                return []
             with open(smart_rest_template_path) as f:
                 payload = f.read()
+                template_id = json.loads(payload)["__externalId"]
                 self.logger.debug(f'SmartRest Template readed from file: {payload}')
-            self.agent.rest_client.create_SmartRest_template(payload,template_id)
-            msg = SmartRESTMessage('s/us', '400', ['c8y_SmartRestTemplateUpload', 'C8Y DM Agent Uploaded a SmartRest Template'])
-            return [msg]
-        else:
-            self.logger.info(f'SmartRest Template found, skipping creation...')
+            if not self.agent.rest_client.check_SmartRest_template_exists(template_id):
+                self.logger.info(f'SmartRest Template does not exist, creating....')
+               
+                self.agent.rest_client.create_SmartRest_template(payload,template_id)
+                msg = SmartRESTMessage('s/us', '400', ['c8y_SmartRestTemplateUpload', 'C8Y DM Agent Uploaded a SmartRest Template'])
+                return [msg]
+            else:
+                self.logger.info(f'SmartRest Template found, skipping creation...')
+        except Exception as ex:
+            self.logger.exception(f'Error on reading and uploading SmartRest Template:', ex)
