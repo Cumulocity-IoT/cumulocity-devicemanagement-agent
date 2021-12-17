@@ -22,7 +22,7 @@ import platform
 import distro
 from c8ydm.framework.smartrest import SmartRESTMessage
 
-if 'Linux' == platform.system() and distro.id in ['debian','ubuntu','raspbian']:
+if 'Linux' == platform.system() and distro.id() in ['debian','ubuntu','raspbian']:
     import apt
 else:
     apt = None
