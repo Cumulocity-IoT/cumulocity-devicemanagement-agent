@@ -237,3 +237,57 @@ class RestClient():
                         return False
             except Exception as e:
                 self.logger.error('The following error occured: %s' % (str(e)))
+
+    def create_SmartRest_template(self,template,template_id):
+        try:
+            url = f'{self.base_url}/inventory/managedObjects'
+            self.logger.debug(f'Sending Request to url {url}')
+            payload = json.loads(template)
+            headers = self.get_auth_header()
+            headers['Content-Type'] ='application/json'
+            headers['Accept'] = 'application/json'
+            response = requests.request("POST", url, headers=headers, data = json.dumps(payload))
+            if response.status_code == 200 or response.status_code==201:
+                json_data = json.loads(response.text)
+                self.logger.info(f'Template created with id {json_data["id"]}')
+                payload = json.loads(f'{{"externalId": "{template_id}","type": "c8y_SmartRest2DeviceIdentifier"}}')
+                url = f'{self.base_url}/identity/globalIds/{json_data["id"]}/externalIds'
+                self.logger.debug(f'Sending Request for idenenity of smart rest template to url {url}')
+                response = requests.request("POST", url, headers=headers, data = json.dumps(payload))
+                if response.status_code == 200 or response.status_code==201:
+                    self.logger.debug('Response from request of identity API for smart rest template: ' + str(response.text))
+                    return True
+                else:
+                    self.logger.warning('Response from request: ' + str(response.text))
+                    self.logger.warning('Got response with status_code: ' +
+                            str(response.status_code))
+                    return False
+            else:
+                self.logger.warning('Response from request: ' + str(response.text))
+                self.logger.warning('Got response with status_code: ' +
+                            str(response.status_code))
+                return False
+        except Exception as e:
+            self.logger.error('The following error occured while trying to create SmartRest template: %s' % (str(e)))    
+
+    def check_SmartRest_template_exists(self,templateID):
+        try:
+            url = f'{self.base_url}/identity/externalIds/c8y_SmartRest2DeviceIdentifier/{templateID}'
+            self.logger.debug(f'Sending Request to url {url}')
+            headers = self.get_auth_header()
+            headers['Content-Type'] ='application/json'
+            headers['Accept'] = 'application/json'
+            response = requests.request("GET", url, headers=headers)
+            self.logger.info('Checking against indentity service')
+            if response.status_code == 200:
+                self.logger.info('Managed object exists in C8Y')
+                self.logger.debug('Returning the internalID')
+                json_data = json.loads(response.text)
+                return True
+            else:
+                self.logger.warning('Response from request: ' + str(response.text))
+                self.logger.warning('Got response with status_code: ' + str(response.status_code))
+                return False
+        except Exception as e:
+            self.logger.error('The following error occured while trying to check for existing SmartRest templates: %s' % (str(e)))
+            return False

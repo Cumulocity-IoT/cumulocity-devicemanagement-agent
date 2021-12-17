@@ -67,6 +67,7 @@ WORKDIR /root
 
 RUN mkdir $HOME/.cumulocity
 COPY ./config/agent.ini /root/.cumulocity/agent.ini
+COPY ./config/DM_Agent.json /root/.cumulocity/DM_Agent.json
 
 # # Install requirements (using pip)
 COPY ./requirements.txt .
