@@ -66,7 +66,10 @@ class Configuration():
       return self.configuration.get(category, key)
     except (NoOptionError, NoSectionError):
       return None
-  
+
+  def hasValue(self, category, key):
+    return self.configuration.has_option(category, key)
+
   def getBooleanValue(self, category, key):
     try:
       return self.configuration.getboolean(category, key)

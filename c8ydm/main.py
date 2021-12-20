@@ -107,9 +107,13 @@ def start():
 
         containerId = None
         serial = None
+        
+        if config.hasValue('agent', 'serial'):
+            serial = config.getValue('agent', 'serial')
+            logging.info('Using config defined serial: %s', serial)
 
         if serial == None:
-            logging.debug(f'Serial not proviced. Fetching from system...')
+            logging.debug(f'Serial not provided. Fetching from system...')
             try:
                 if os.getenv('CONTAINER') == 'docker':
                     containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
