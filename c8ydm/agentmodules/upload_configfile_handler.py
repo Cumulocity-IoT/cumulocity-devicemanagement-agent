@@ -57,7 +57,6 @@ class UploadConfigfileInitializer(Initializer, Listener):
         mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
         configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': '/root/.cumulocity/agent.ini'}  
         try:
-            self.logger.info(message.messageId)
             if 's/ds' in message.topic and message.messageId == '526':
                 deviceid = message.values[0]
                 configtype = message.values[1]
