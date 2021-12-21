@@ -246,6 +246,29 @@ class RestClient():
                 return None
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
+        
+    def download_c8y_binary(self, url, file):
+        #self.logger.info('Update of managed Object')
+        try:
+            headers = self.get_auth_header()
+            headers['Content-Type'] = 'multipart/form-data'
+            headers['Accept'] = 'application/json'
+            self.logger.info(f'Sending Request to url {url}')
+            response = requests.request(
+                "GET", url, headers=headers, allow_redirects=True)
+            self.logger.debug('Response from request: ' + str(response.text))
+            self.logger.debug('Response from request with code : ' + str(response.status_code))
+            if response.status_code == 200 or response.status_code == 201:
+                open(file,'wb').write(response.content)
+                # print(binaryurl)
+                # return binaryurl
+                return file
+            else:
+                self.logger.warning('Binary download failed in C8Y')
+                return None
+        except Exception as e:
+            self.logger.error('The following error occured: %s' % (str(e)))
+            return None
 
     def get_all_dangling_operations(self, internal_id):
         try:
