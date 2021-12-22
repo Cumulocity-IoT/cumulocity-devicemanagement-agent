@@ -157,6 +157,39 @@ class RestClient():
         except Exception as ex:
             self.logger.error('The following error occured: %s' % (str(ex)))
             return None
+        
+    def create_configfile_event(self, mo_id, configtype, path):
+        try:
+            url = f'{self.base_url}/event/events'
+            headers = self.get_auth_header()
+            headers['Content-Type'] = 'application/json'
+            headers['Accept'] = 'application/json'
+            payload = {
+                "time" : datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "type" : configtype,
+                "text" : path,
+                "description": "Config File Snapshot Request Event",
+                "source": { "id" : mo_id}
+            }
+            self.logger.debug(f'Sending Request to url {url}')
+            response = requests.request(
+                "POST", url, headers=headers, data=json.dumps(payload))
+            self.logger.debug(
+                'Response from request: ' + str(response.text))
+            self.logger.debug(
+                'Response from request with code : ' + str(response.status_code))
+            if response.status_code == 200 or response.status_code == 201:
+                json_data = json.loads(response.text)
+                event_id = json_data["id"]
+                # print(binaryurl)
+                # return binaryurl
+                return event_id
+            else:
+                self.logger.warning('Creating LogFileEvent failed!')
+                return None
+        except Exception as ex:
+            self.logger.error('The following error occured: %s' % (str(ex)))
+            return None
 
     def upload_event_logfile(self, mo_id, payload, file):
         #self.logger.info('Update of managed Object')
@@ -185,6 +218,57 @@ class RestClient():
                 return None
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
+    
+    def upload_event_configfile(self, mo_id, payload, file, configtype, path):
+        #self.logger.info('Update of managed Object')
+        try:
+            event_id = self.create_configfile_event(mo_id,configtype,path)
+            if not event_id:
+                return None
+            url = f'{self.base_url}/event/events/{event_id}/binaries'
+            headers = self.get_auth_header()
+            headers['Content-Type'] = 'multipart/form-data'
+            headers['Accept'] = 'application/json'
+            self.logger.debug(f'Sending Request to url {url}')
+            response = requests.request(
+                "POST", url, headers=headers, data=payload, files=file)
+            self.logger.debug('Response from request: ' + str(response.text))
+            self.logger.debug(
+                'Response from request with code : ' + str(response.status_code))
+            if response.status_code == 200 or response.status_code == 201:
+                json_data = json.loads(response.text)
+                binaryurl = json_data["self"]
+                # print(binaryurl)
+                # return binaryurl
+                return binaryurl
+            else:
+                self.logger.warning('Binary upload failed in C8Y')
+                return None
+        except Exception as e:
+            self.logger.error('The following error occured: %s' % (str(e)))
+        
+    def download_c8y_binary(self, url, file):
+        #self.logger.info('Update of managed Object')
+        try:
+            headers = self.get_auth_header()
+            headers['Content-Type'] = 'multipart/form-data'
+            headers['Accept'] = 'application/json'
+            self.logger.info(f'Sending Request to url {url}')
+            response = requests.request(
+                "GET", url, headers=headers, allow_redirects=True)
+            self.logger.debug('Response from request: ' + str(response.text))
+            self.logger.debug('Response from request with code : ' + str(response.status_code))
+            if response.status_code == 200 or response.status_code == 201:
+                open(file,'wb').write(response.content)
+                # print(binaryurl)
+                # return binaryurl
+                return file
+            else:
+                self.logger.warning('Binary download failed in C8Y')
+                return None
+        except Exception as e:
+            self.logger.error('The following error occured: %s' % (str(e)))
+            return None
 
     def get_all_dangling_operations(self, internal_id):
         try:
