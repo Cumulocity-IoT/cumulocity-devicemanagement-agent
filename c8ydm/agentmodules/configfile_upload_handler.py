@@ -21,7 +21,8 @@ import logging, io, re
 from datetime import datetime
 from c8ydm.framework.modulebase import Initializer, Listener
 from c8ydm.framework.smartrest import SmartRESTMessage
-from c8ydm.utils.configutils import Configuration
+from os.path import expanduser,exists
+import pathlib
 
 class UploadConfigfileInitializer(Initializer, Listener):
     logger = logging.getLogger(__name__)
@@ -56,24 +57,29 @@ class UploadConfigfileInitializer(Initializer, Listener):
     
     def handleOperation(self, message):
         mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-        configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': '/root/.cumulocity/agent.ini'}  
+        home = expanduser('~')
+        root = pathlib.Path(home + '/.cumulocity/')
+        configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': f'{root}agent.ini'}   
         try:
             if 's/ds' in message.topic and message.messageId == '526':
                 deviceid = message.values[0]
                 configtype = message.values[1]
                 self._set_executing()
                 if configtype in configfiles:
-                    path = configfiles[configtype]
-                    f = open(path, "rb")
-                    memFile = f.read()
-                    payload = {'object' : '{"name" : "configfile'+ deviceid+'", "type" : "text/plain" }'}
-                    file = [('file' , memFile)]
-                    binaryurl = self.agent.rest_client.upload_event_configfile(mo_id, payload, file, configtype, path)
-                    if binaryurl:
-                        self._set_success(binaryurl)
-                        self.logger.debug("UploadConfigHandler uploaded Binary under following URL: "+binaryurl)
+                    path = pathlib.Path(configfiles[configtype])
+                    if path.exists():
+                        f = open(path, "rb")
+                        memFile = f.read()
+                        payload = {'object' : '{"name" : "configfile'+ deviceid+'", "type" : "text/plain" }'}
+                        file = [('file' , memFile)]
+                        binaryurl = self.agent.rest_client.upload_event_configfile(mo_id, payload, file, configtype, path)
+                        if binaryurl:
+                            self._set_success(binaryurl)
+                            self.logger.debug("UploadConfigHandler uploaded Binary under following URL: "+binaryurl)
+                        else:
+                            self._set_failed('Could not upload configfile')
                     else:
-                        self._set_failed('Could not upload configfile')
+                       self._set_failed("Config file does not exist") 
                 else:
                     self._set_failed("Do not know config file type")
             elif 's/ds' in message.topic and message.messageId == '520':

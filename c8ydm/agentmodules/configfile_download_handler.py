@@ -21,7 +21,8 @@ import logging, io, re
 from datetime import datetime
 from c8ydm.framework.modulebase import Initializer, Listener
 from c8ydm.framework.smartrest import SmartRESTMessage
-from c8ydm.utils.configutils import Configuration
+from os.path import expanduser,exists,basename
+import pathlib
 import subprocess
 
 class DownloadConfigfileInitializer(Initializer, Listener):
@@ -56,9 +57,10 @@ class DownloadConfigfileInitializer(Initializer, Listener):
     
     def handleOperation(self, message):
         mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-        configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': '/root/.cumulocity/agent.ini'}  
+        home = expanduser('~')
+        root = pathlib.Path(home + '/.cumulocity/')
+        configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': f'{root}agent.ini'}  
         try:
-            self.logger.info(message.messageId)
             if 's/ds' in message.topic and message.messageId == '524':
                 deviceid = message.values[0]
                 binaryurl = message.values[1]
@@ -66,15 +68,18 @@ class DownloadConfigfileInitializer(Initializer, Listener):
                 self._set_executing()
                 if 'cumulocity' in binaryurl:  
                     if configtype in configfiles:
-                        path = configfiles[configtype]
-                        process = subprocess.Popen(["cp",path,f'{path}_backup'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                        process.wait()
-                        if self.agent.rest_client.download_c8y_binary(binaryurl,path) is not None:
-                            eventMsg = SmartRESTMessage('s/us', '400', ['c8y_ConfigDownloadEvent', f'Config {configtype} was downloaded to {path}. Backup of old config file was created.'])
-                            self.agent.publishMessage(eventMsg)
-                            self._set_success(binaryurl)
+                        path = pathlib.Path(configfiles[configtype])
+                        if pathlib.Path(basename(configfiles[configtype])).exists():
+                            process = subprocess.Popen(["cp",path,f'{path}_backup'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                            process.wait()
+                            if self.agent.rest_client.download_c8y_binary(binaryurl,path) is not None:
+                                eventMsg = SmartRESTMessage('s/us', '400', ['c8y_ConfigDownloadEvent', f'Config {configtype} was downloaded to {path}. Backup of old config file was created.'])
+                                self.agent.publishMessage(eventMsg)
+                                self._set_success(binaryurl)
+                            else:
+                                self._set_failed("Failed to download file from c8y binary")
                         else:
-                            self._set_failed("Failed to download file from c8y binary")
+                            self._set_failed("Directory of config file does not exist")
                     else:
                         self._set_failed("Do not know config file type")
                 else:
