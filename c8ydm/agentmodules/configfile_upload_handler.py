@@ -21,7 +21,7 @@ import logging, io, re
 from datetime import datetime
 from c8ydm.framework.modulebase import Initializer, Listener
 from c8ydm.framework.smartrest import SmartRESTMessage
-from os.path import expanduser,exists
+from os.path import expanduser,exists,isfile
 import pathlib
 
 class UploadConfigfileInitializer(Initializer, Listener):
@@ -58,8 +58,8 @@ class UploadConfigfileInitializer(Initializer, Listener):
     def handleOperation(self, message):
         mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
         home = expanduser('~')
-        root = pathlib.Path(home + '/.cumulocity/')
-        configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': f'{root}agent.ini'}   
+        root = pathlib.Path(home + '/.cumulocity')
+        configfiles = {'sshd': '/etc/ssh/sshd_config', 'agent': f'{root}/agent.ini'}   
         try:
             if 's/ds' in message.topic and message.messageId == '526':
                 deviceid = message.values[0]
@@ -67,12 +67,12 @@ class UploadConfigfileInitializer(Initializer, Listener):
                 self._set_executing()
                 if configtype in configfiles:
                     path = pathlib.Path(configfiles[configtype])
-                    if path.exists():
+                    if isfile(path):
                         f = open(path, "rb")
                         memFile = f.read()
                         payload = {'object' : '{"name" : "configfile'+ deviceid+'", "type" : "text/plain" }'}
                         file = [('file' , memFile)]
-                        binaryurl = self.agent.rest_client.upload_event_configfile(mo_id, payload, file, configtype, path)
+                        binaryurl = self.agent.rest_client.upload_event_configfile(mo_id, payload, file, configtype, str(path))
                         if binaryurl:
                             self._set_success(binaryurl)
                             self.logger.debug("UploadConfigHandler uploaded Binary under following URL: "+binaryurl)

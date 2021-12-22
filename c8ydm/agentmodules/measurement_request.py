@@ -67,10 +67,9 @@ class MeasurementRequestHandler(Initializer, Listener):
     def handleOperation(self, message):
         mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
         try:
-            self.logger.info(message.messageId)
             if 's/ds' in message.topic and message.messageId == '517':
                 self._set_executing()
-                self.logger.info("sending device stats")
+                self.logger.info("Sending device stats due to measurement request")
                 self.stats = []
                 for key,value in self._getCPU().items():
                     self.stats.append(SmartRESTMessage('s/us', '200', ['cpu', key, value]))
@@ -80,7 +79,7 @@ class MeasurementRequestHandler(Initializer, Listener):
                     self.stats.append(SmartRESTMessage('s/us', '200', ['memory', key, value]))
                 for i in self.stats:
                     self.agent.publishMessage(i)
-                self.logger.info("sended device stats")
+                self.logger.debug("Sended device stats due to measurment request")
                 self._set_success()
             self.logger.debug("Measurement request handled")
         except Exception as e:
