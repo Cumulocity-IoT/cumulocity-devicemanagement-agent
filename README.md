@@ -2,8 +2,27 @@
 Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the [Device Management Capabilities](https://cumulocity.com/guides/users-guide/device-management/) of [Cumulocity IoT](https://www.softwareag.cloud/site/product/cumulocity-iot.html)
 
 # Quick Start
+## Native
 
-To quickly run the agent just make sure that Docker is installed on your computer and run in a Linux Shell:
+To quickly run the agent natively make sure pyhton 3.7+ and pip is installed on your computer. 
+Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into ~/.cumulocity folder. 
+"~" stands for the current user folder e.g. "/home/user1" in Linux or "C:\Users\user1" in Windows.
+
+Installation
+
+    pip install c8ydm
+
+To start the agent run
+
+    c8ydm.start
+
+and to stop run
+
+    c8ydm.stop
+
+
+## Docker
+To quickly run the agent clone this repo somewhere on your disk, make sure that Docker is installed on your computer and run in a Linux Shell:
 
     ./start.sh
 
@@ -19,7 +38,7 @@ You can find it out with:
     docker ps
 
 If you want to run the Agent without using docker you need to [build](#build) and  [run](#run) the Agent manually.
-## Quick Start Configuration
+### Quick Start Configuration (Docker)
 
 The DM Agent configuration can be either set by changing the [agent.ini](./config/agent.ini) or setting variables **before** you build or start the container.
 For example to use [Device Certificates](https://cumulocity.com/guides/device-sdk/mqtt/#device-certificates) you can use the following ENV Variables.
