@@ -5,7 +5,7 @@ Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstr
 ## Native
 
 To quickly run the agent natively make sure pyhton 3.7+ and pip is installed on your computer. 
-Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into the /.cumulocity folder in your user folder. 
+Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into the /.cumulocity folder in your **user folder**. 
 For example: "/home/user1/.cumulocity" in Linux or "C:\Users\user1\\.cumulocity" in Windows.
 
 Installation
