@@ -17,9 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging, time
+import logging, time, uuid
+import socket
+import ipaddress
 from requests import get
-from pyspectator.computer import Computer
 from c8ydm.framework.modulebase import Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
 from c8ydm.core.geo_position_resolver import GeoPositionResolver
@@ -37,14 +38,17 @@ class Network(Initializer):
         pos_msg = None
         try:
             self.logger.info(f'Network Initializer called...')
-            computer = Computer()
-            with computer:
-                name = str(computer.network_interface.name)
-                mac = str(computer.network_interface.hardware_address)
-                ip = str(computer.network_interface.ip_address)
-                netmask = str(computer.network_interface.subnet_mask)
-                enabled = 1
-                net_msg = SmartRESTMessage('s/uc/'+self.xid, self.net_message_id, [self.serial, ip, netmask, name, enabled, mac])
+            ip = socket.gethostbyname(socket.gethostname())
+            netmask = ipaddress.IPv4Network(ip).netmask
+            name = None
+            mac = self.get_mac()
+            for interface in socket.if_nameindex():
+                if_name = interface[1]
+                if  if_name.startswith('eth'):
+                    name = interface[1]
+                    break
+            enabled = 1
+            net_msg = SmartRESTMessage('s/uc/'+self.xid, self.net_message_id, [self.serial, ip, netmask, name, enabled, mac])
             pub_ip = self.get_public_ip()
             lat_lng = self.geo_pos_resolver.get_pos_by_ip(pub_ip)
             
@@ -64,6 +68,11 @@ class Network(Initializer):
         except Exception as ex:
             self.logger.error(f'Error retrieving public IP: {ex}')
             return None
-        
+    
+    def get_mac(self):
+        mac_num = hex(uuid.getnode()).replace('0x', '').replace('L', '').upper()
+        mac_num = mac_num.zfill(12)
+        mac = ':'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
+        return mac
 
 
