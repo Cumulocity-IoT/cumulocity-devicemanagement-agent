@@ -78,6 +78,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt -r tests/requirements.txt
 
 COPY setup.py .
+COPY README.md .
 COPY ./c8ydm ./c8ydm
 RUN pip3 install .
 
