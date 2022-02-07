@@ -27,7 +27,7 @@ setup(
       name='c8ydm',
       long_description=long_description,
       long_description_content_type="text/markdown",
-      version='1.0.1',
+      version='1.0.2',
       description='Cumulocity Device Management Agent',
       author='Tobias Sommer, Stefan Witschel, Marco Stoffel, Murat Bayram',
       author_email="Stefan.Witschel@softwareag.com",
@@ -43,7 +43,7 @@ setup(
         "paho-mqtt>=1.5.1",
         "psutil>=5.8.0",
         "requests>=2.25.1",
-        "c8y-device-proxy>=1.0.1",
+        "c8y-device-proxy>=1.1.1",
         "certifi>=2021.10.8",
         "distro>=1.6.0"
     ],
