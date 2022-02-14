@@ -79,7 +79,6 @@ class RemoteAccessListener(Listener):
         token = self.agent.token
         tenantuser = credentials[0]+'/'+ credentials[1]
         password = credentials[2]
-        self.logger.info(f'Tenantuser {tenantuser} with password {password}')
 
         if token is None and tenantuser is None and password is None:
             raise WebSocketFailureException(
