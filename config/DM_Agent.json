@@ -10,6 +10,7 @@
         "api": "INVENTORY",
         "byId": false,
         "externalIdType": "c8y_Serial",
+        "mandatoryValues": [],
         "customValues": [
           {
             "path": "c8y_Network.c8y_LAN.ip",
@@ -37,7 +38,6 @@
             "value": ""
           }
         ],
-        "mandatoryValues": [],
         "name": "Network"
       },
       {
@@ -47,6 +47,7 @@
         "api": "INVENTORY",
         "byId": false,
         "externalIdType": "c8y_Serial",
+        "mandatoryValues": [],
         "customValues": [
           {
             "path": "c8y_Agent.name",
@@ -64,7 +65,6 @@
             "value": ""
           }
         ],
-        "mandatoryValues": [],
         "name": "Agent"
       }
     ],
@@ -81,6 +81,15 @@
           "c8y_Docker.options.ports",
           "c8y_Docker.containerID",
           "c8y_Docker.name"
+        ]
+      },
+      {
+        "msgId": "dm502",
+        "condition": "c8y_Message",
+        "base": "",
+        "name": "Message",
+        "pattern": [
+          "c8y_Message.text"
         ]
       }
     ]

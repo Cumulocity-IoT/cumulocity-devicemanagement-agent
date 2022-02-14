@@ -6,3 +6,4 @@ pyspectator>=1.2.2
 c8y-device-proxy>=1.1.1
 certifi>=2021.10.8
 distro>=1.6.0
+sense-hat>=2.2.0
