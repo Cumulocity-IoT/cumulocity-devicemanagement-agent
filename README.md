@@ -65,6 +65,44 @@ INTERACTIVE=1 ./start.sh
 
 If you don't want to run within docker follow the steps below.
 
+# Features
+
+## Supported Cumulocity DM Features
+
+| **Feature**                                  | **Supported**          |
+|----------------------------------------------|------------------------|
+|     Device Certificates                      |     Yes                |
+|     Device Bootstrapping & Registration      |     Yes                |
+|     Software Updates (apt)                   |     Yes                |
+|     Firmware Updates                         |     Yes                |
+|     Configuration Updates text-based         |     Yes                |
+|     Configuration Snapshots                  |     Yes                |
+|     Device Profiles                          |     Yes                |
+|     Network                                  |     Yes                |
+|     Device Metrics (CPU, Memory etc.)        |     Yes                |
+|     Remote Logfile Requests                  |     Yes                |
+|     Location Updates                         |     Yes                |
+|     Remote Shell                             |     Yes                |
+|     Remote Access (SSH, VNC, Passthrough)    |     Yes                |
+|     Hardware Metering (CPU, Memory, HDD)     |     Yes                |
+|     Raspberry PI SenseHAT                    |     Yes                |
+|     Docker Management                        |     Yes                |
+
+## Raspberry PI & SenseHAT Support
+
+The DM Agent can run on a Raspberry PI (3+) with a SenseHAT. 
+It supports:
+* Reading out all sensor values of the SenseHAT (Humidity, Temperature, Acceleration, Gyroscope, Compass)
+* Display Messages on the LEDs sent via Cumulocity to the Pi (c8y_Message) via Message Widget. 
+* Generates Events when the Joystick is pressed in different direction.
+
+It is suggested to run the Agent a Service. Use [dm-agent.service](./service/dm-agent.service) to install it:
+```
+sudo cp ./service/dm-agent.service /etc/systemd/system/
+sudo systemctl enable dm-agent.service
+sudo systemctl daemon-reload
+sudo service dm-agent start 
+```
 # Configuration
 
 The agent can be configured via the agent.ini which must be placed in 
