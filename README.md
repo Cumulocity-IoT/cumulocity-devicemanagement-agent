@@ -96,7 +96,7 @@ It supports:
 * Display Messages on the LEDs sent via Cumulocity to the Pi (c8y_Message) via Message Widget. 
 * Generates Events when the Joystick is pressed in different direction.
 
-It is suggested to run the Agent a Service. Use [dm-agent.service](./service/dm-agent.service) to install it:
+It is suggested to run the Agent as a Service. Use [dm-agent.service](./service/dm-agent.service) to install it:
 ```
 sudo cp ./service/dm-agent.service /etc/systemd/system/
 sudo systemctl enable dm-agent.service
