@@ -1,10 +1,10 @@
-FROM debian:10-slim
+FROM debian:11-slim
 ARG DEB_MIRROR=http://ftp.de.debian.org/debian
 
 # Install additional packages.
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINER=docker
-RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
+RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
     && apt-get update \
     && apt-get -y install --no-install-recommends \
     python3 \
@@ -21,15 +21,12 @@ RUN echo "deb ${DEB_MIRROR} buster main" > /etc/apt/sources.list \
     build-essential \
     debhelper \
     dh-python \
-    python-docutils \
-    python-sphinx \
     fakeroot \
     bash-completion \
     locales \
     aptly \
     geoip-bin  \
-    geoip-database \
-    geoip-database-extra
+    geoip-database
 
 # Fix locale errors
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
@@ -77,9 +74,11 @@ COPY ./config/agent.ini /root/.cumulocity/agent.ini
 # # Install requirements (using pip)
 COPY requirements.txt .
 COPY tests/requirements.txt tests/requirements.txt
+RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt -r tests/requirements.txt
 
 COPY setup.py .
+COPY README.md .
 COPY ./c8ydm ./c8ydm
 RUN pip3 install .
 

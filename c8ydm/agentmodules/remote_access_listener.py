@@ -79,7 +79,6 @@ class RemoteAccessListener(Listener):
         token = self.agent.token
         tenantuser = credentials[0]+'/'+ credentials[1]
         password = credentials[2]
-        self.logger.info(f'Tenantuser {tenantuser} with password {password}')
 
         if token is None and tenantuser is None and password is None:
             raise WebSocketFailureException(
@@ -88,7 +87,7 @@ class RemoteAccessListener(Listener):
          # Not sure which buffer size is good, starting with 16 KB (16 x 1024)
         #buffer_size = self.utils.config.getint('remote-connect', 'tcp.buffer.size')
         self._device_proxy = DeviceProxy(
-            tcp_host, tcp_port, None, connection_key, base_url, tenantuser, password, token)
+            tcp_host, tcp_port, None, connection_key, base_url, tenantuser, password, token, None)
         self._device_proxy.connect()
         self._set_success()
 

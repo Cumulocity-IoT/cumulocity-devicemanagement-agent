@@ -2,8 +2,27 @@
 Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the [Device Management Capabilities](https://cumulocity.com/guides/users-guide/device-management/) of [Cumulocity IoT](https://www.softwareag.cloud/site/product/cumulocity-iot.html)
 
 # Quick Start
+## Native
 
-To quickly run the agent just make sure that Docker is installed on your computer and run in a Linux Shell:
+To quickly run the agent natively make sure pyhton 3.7+ and pip is installed on your computer. 
+Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into the /.cumulocity folder in your **user folder**. 
+For example: "/home/user1/.cumulocity" in Linux or "C:\Users\user1\\.cumulocity" in Windows.
+
+Installation
+
+    pip install c8ydm
+
+To start the agent run
+
+    c8ydm.start
+
+and to stop run
+
+    c8ydm.stop
+
+
+## Docker
+To quickly run the agent clone this repo somewhere on your disk, make sure that Docker is installed on your computer and run in a Linux Shell:
 
     ./start.sh
 
@@ -19,7 +38,7 @@ You can find it out with:
     docker ps
 
 If you want to run the Agent without using docker you need to [build](#build) and  [run](#run) the Agent manually.
-## Quick Start Configuration
+### Quick Start Configuration (Docker)
 
 The DM Agent configuration can be either set by changing the [agent.ini](./config/agent.ini) or setting variables **before** you build or start the container.
 For example to use [Device Certificates](https://cumulocity.com/guides/device-sdk/mqtt/#device-certificates) you can use the following ENV Variables.
@@ -46,6 +65,44 @@ INTERACTIVE=1 ./start.sh
 
 If you don't want to run within docker follow the steps below.
 
+# Features
+
+## Supported Cumulocity DM Features
+
+| **Feature**                                  | **Supported**          |
+|----------------------------------------------|------------------------|
+|     Device Certificates                      |     Yes                |
+|     Device Bootstrapping & Registration      |     Yes                |
+|     Software Updates (apt)                   |     Yes                |
+|     Firmware Updates                         |     Yes                |
+|     Configuration Updates text-based         |     Yes                |
+|     Configuration Snapshots                  |     Yes                |
+|     Device Profiles                          |     Yes                |
+|     Network                                  |     Yes                |
+|     Device Metrics (CPU, Memory etc.)        |     Yes                |
+|     Remote Logfile Requests                  |     Yes                |
+|     Location Updates                         |     Yes                |
+|     Remote Shell                             |     Yes                |
+|     Remote Access (SSH, VNC, Passthrough)    |     Yes                |
+|     Hardware Metering (CPU, Memory, HDD)     |     Yes                |
+|     Raspberry PI SenseHAT                    |     Yes                |
+|     Docker Management                        |     Yes                |
+
+## Raspberry PI & SenseHAT Support
+
+The DM Agent can run on a Raspberry PI (3+) with a SenseHAT. 
+It supports:
+* Reading out all sensor values of the SenseHAT (Humidity, Temperature, Acceleration, Gyroscope, Compass)
+* Display Messages on the LEDs sent via Cumulocity to the Pi (c8y_Message) via Message Widget. 
+* Generates Events when the Joystick is pressed in different direction.
+
+It is suggested to run the Agent as a Service. Use [dm-agent.service](./service/dm-agent.service) to install it:
+```
+sudo cp ./service/dm-agent.service /etc/systemd/system/
+sudo systemctl enable dm-agent.service
+sudo systemctl daemon-reload
+sudo service dm-agent start 
+```
 # Configuration
 
 The agent can be configured via the agent.ini which must be placed in 
@@ -54,26 +111,8 @@ The agent can be configured via the agent.ini which must be placed in
 
 When running in docker container the agent.ini can be mounted to the /root/.cumulocity/agent.ini
 
-Below a reference agent.ini is proviced:
+You can find a reference agent.ini [here](/config/agent.ini)
 
-```console
-[mqtt]
-url = mqtt.eu-latest.cumulocity.com
-port = 8883
-tls = true
-cert_auth = false
-client_cert = s7y_pi.crt
-client_key = s7y_pi.key
-cacert = /etc/ssl/certs/ca-certificates.crt
-ping.interval.seconds = 60
-
-[agent]
-name = dm-example-device
-type = c8y_dm_example_device
-main.loop.interval.seconds = 10
-requiredinterval = 10
-loglevel = INFO
-```
 | Category | Property   | Description
 | ---------|:----------:|:-----------
 | mqtt     | url        | The URL of the Cumulocity MQTT endpoint
@@ -103,13 +142,13 @@ Mapping rules:
 The agent can be build in multiple ways.
 ## Building via pip
 
-To build the agent via pip just run
+To build the agent via pip just run (as a root user, otherwise add "sudo" prior all commands).
 
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
 
  to install dependencies and afterwards
 
-    pip install .
+    pip3 install .
 
 to build the agent itself.
 Please note that in debian/ubuntu you need additionally install
@@ -154,10 +193,10 @@ Before running the agent some manual steps need to be taken
 
 1. Manually put the [config file](./config/agent.ini) into {userfolder}/.cumulocity
 
-You can run the agent by executing
+You can run the agent by executing (as root, otherwise add "sudo")
 
 ```console
-sudo c8ydm.start
+c8ydm.start
 ```
 in your console when you used [Building via pip](#building-via-pip) to build and install the agent.
 
@@ -165,12 +204,12 @@ in your console when you used [Building via pip](#building-via-pip) to build and
 
 Before running the agent some manual steps need to be taken
 
-1. Manually put the [config file](./config/agent.ini) into /root/.cumulocity
+1. Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into ~/.cumulocity folder. ~ stands for the current user folder. The SmartRESTTemplate will be automatically uploaded on first start.
 
-You can run the agent by executing
+You can run the agent by executing (as root, otherwise add "sudo")
 
 ```console
-sudo c8ydm.start
+c8ydm.start
 ```
 in your console when you used [Building via deb](#building-debian-package) to build and install the agent.
 
@@ -185,6 +224,15 @@ in your console when you used [Building Docker Image](#building-docker-image) to
 
 The config can be mounted the container. Otherwise the default config will be used.
 
+## Mass deployment
+
+You can run multiple instances of an container via:
+
+```console
+. mass_start.sh 5
+```
+
+where in this example 5 is the number of agent instances.
 # Develop
 
 ## Dev Container
