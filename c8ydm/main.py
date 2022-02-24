@@ -40,10 +40,12 @@ bootstrap_agent = None
 terminated = False
 simulated = False
 
+
 def handle_sigterm(*args):
     global terminated
     if not terminated:
         raise KeyboardInterrupt
+
 
 def keyboard_interupt_hook(exctype, value, traceback):
     try:
@@ -60,7 +62,7 @@ def keyboard_interupt_hook(exctype, value, traceback):
                     bootstrap_agent.stop()
                 stop()
                 sys.exit(0)
-        #else:
+        # else:
         #    sys.__excepthook__(exctype, value, traceback)
     except Exception as ex:
         logging.error(ex)
@@ -80,13 +82,15 @@ def start():
         path.mkdir(parents=True, exist_ok=True)
         config_path = pathlib.Path(path / 'agent.ini')
         if not config_path.is_file():
-            sys.exit(f'No agent.ini found in "{path}". Create it to properly configure the agent.')
+            sys.exit(
+                f'No agent.ini found in "{path}". Create it to properly configure the agent.')
         config = Configuration(str(path))
         loglevel = config.getValue('agent', 'loglevel')
         logger.setLevel(loglevel)
         log_file_formatter = logging.Formatter(
             '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
-        log_console_formatter = logging.Formatter('%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
+        log_console_formatter = logging.Formatter(
+            '%(asctime)s %(threadName)s %(levelname)s %(name)s %(message)s')
         # Set default log format
         if len(logger.handlers) == 0:
             console_handler = logging.StreamHandler()
@@ -99,7 +103,7 @@ def start():
 
         # Max 5 log files each 10 MB.
         rotate_handler = RotatingFileHandler(filename=path / 'agent.log', maxBytes=10000000,
-                                            backupCount=5)
+                                             backupCount=5)
         rotate_handler.setFormatter(log_file_formatter)
         rotate_handler.setLevel(loglevel)
         # Log to Rotating File
@@ -107,7 +111,7 @@ def start():
 
         containerId = None
         serial = None
-        
+
         if config.hasValue('agent', 'serial'):
             serial = config.getValue('agent', 'serial')
             logging.info('Using config defined serial: %s', serial)
@@ -116,7 +120,8 @@ def start():
             logging.debug(f'Serial not provided. Fetching from system...')
             try:
                 if os.getenv('CONTAINER') == 'docker':
-                    containerId = subprocess.check_output(['bash', '-c', 'hostname'], universal_newlines=True)
+                    containerId = subprocess.check_output(
+                        ['bash', '-c', 'hostname'], universal_newlines=True)
                     containerId = containerId.strip('\n')
                     containerId = containerId.strip()
                     logging.info('Container Id: %s', str(containerId))
@@ -131,39 +136,42 @@ def start():
             else:
                 serial = containerId.strip()
                 simulated = True
-        if config.getValue('agent','device.id'):
-            serial = config.getValue('agent','device.id')
-        #if not simulated:
+        if config.getValue('agent', 'device.id'):
+            serial = config.getValue('agent', 'device.id')
+        # if not simulated:
         startDaemon(str(path) + '/agent.pid')
         logging.info(f'Serial: {serial}')
 
         credentials = config.getCredentials()
         logging.debug('Credentials:')
         logging.debug(credentials)
-        agent = Agent(serial, path, config, str(path) + '/agent.pid', simulated)
-        cert_auth = config.getBooleanValue('mqtt','cert_auth')
+        agent = Agent(serial, path, config, str(
+            path) + '/agent.pid', simulated)
+        cert_auth = config.getBooleanValue('mqtt', 'cert_auth')
         logging.debug(f'cert_auth: {cert_auth}')
         if not cert_auth and credentials is None:
             logging.info('No credentials found. Starting bootstrap mode.')
             bootstrapCredentials = config.getBootstrapCredentials()
             if bootstrapCredentials is None:
-                logging.error('No bootstrap credentials found. Stopping agent.')
+                logging.error(
+                    'No bootstrap credentials found. Stopping agent.')
                 return
             bootstrapAgent = Bootstrap(serial, str(path), config)
             bootstrapAgent.bootstrap()
             credentials = config.getCredentials()
             if credentials is None:
-                logging.error('No credentials found after bootstrapping. Stopping agent.')
-                return        
+                logging.error(
+                    'No credentials found after bootstrapping. Stopping agent.')
+                return
         agent.run()
     except Exception as ex:
         logger.exception(f'Error on main start {ex}', ex)
-        
 
 
 def stop():
     path = expanduser('~') + '/.cumulocity'
     stopDaemon(path + '/agent.pid')
+
 
 def stopDaemon(pidfile):
     """Stop the daemon."""
@@ -183,11 +191,11 @@ def stopDaemon(pidfile):
     # Try killing the daemon process
     try:
         while 1:
-            #if not terminated:
+            # if not terminated:
             logging.debug(f'Try killing pid {pid}')
             os.kill(pid, signal.SIGKILL)
             time.sleep(0.1)
-                
+
     except OSError as err:
         e = str(err.args)
         if e.find("No such process") > 0:
@@ -196,7 +204,6 @@ def stopDaemon(pidfile):
         else:
             print(str(err.args))
             sys.exit(1)
-    
 
 
 def delpid(pidfile):
@@ -246,6 +253,7 @@ def isPidRunning(pid):
         return False
     else:
         return True
+
 
 if __name__ == '__main__':
     start()
