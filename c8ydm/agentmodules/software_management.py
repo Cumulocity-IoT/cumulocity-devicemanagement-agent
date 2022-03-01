@@ -113,6 +113,8 @@ class SoftwareManager(Listener, Initializer):
                             finished = SmartRESTMessage(
                                 's/us', '503', ['c8y_SoftwareUpdate'])
                             self.agent.publishMessage(finished)
+                            self.agent.publishMessage(
+                                self.apt_package_manager.getInstalledSoftware(False))
                     
                 
             if 's/ds' in message.topic and message.messageId == '516':
