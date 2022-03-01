@@ -162,11 +162,11 @@ Continue with chapter [Run](#run)
 
 In order to build the .deb yourself first install python-stdeb via apt.
 
-    apt install python-stdeb
+    apt install python3-stdeb
 
  Afterwards run
 
-    python setup.py --command-packages=stdeb.command bdist_deb
+    python3 setup.py --command-packages=stdeb.command bdist_deb
 
 on the level of the setup.py.
 
