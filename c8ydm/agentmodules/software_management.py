@@ -103,7 +103,8 @@ class SoftwareManager(Listener, Initializer):
                     file = self.agent.rest_client.download_c8y_binary(url)
                     self.logger.info(f'File to be installed: {file}')
                     if action == 'install' or action == 'update':
-                        result = sp.run(["dpkg","-i", file], stdout=sp.PIPE, stderr=sp.PIPE)
+                        #result = sp.run(["dpkg","-i", file], stdout=sp.PIPE, stderr=sp.PIPE)
+                        result = sp.run(["apt-get","-y","install",file], stdout=sp.PIPE, stderr=sp.PIPE)
                         errors = result.stderr.decode("utf-8")
                         self.logger.info(f'Result of subprocess Error: {errors}')
                         if errors:
