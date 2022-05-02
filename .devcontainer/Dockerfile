@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINER=docker
 RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
     && apt-get update \
-    && apt-get -y install --no-install-recommends \
+    && apt-get -y install --no-install-recommends --allow-downgrades \
     python3 \
     python3-setuptools \
     python3-apt \
@@ -24,9 +24,8 @@ RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
     fakeroot \
     bash-completion \
     locales \
-    aptly \
-    geoip-bin  \
-    geoip-database
+    zlib1g=1:1.2.11.dfsg-2 \
+    aptly
 
 # Fix locale errors
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
