@@ -17,6 +17,7 @@ RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
 	python3-websocket \
     python3-requests \
 	python3-all \
+    libjpeg62-turbo \
     openssh-server \
     git \
     build-essential \
@@ -24,8 +25,8 @@ RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
     dh-python \
     fakeroot \
     bash-completion \
-    locales \
     zlib1g=1:1.2.11.dfsg-2 \
+    locales \
     aptly
 
 RUN locale-gen en_US.UTF-8 # Fix locale errors
