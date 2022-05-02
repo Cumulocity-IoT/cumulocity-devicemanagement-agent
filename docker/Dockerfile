@@ -19,8 +19,12 @@ RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
     zlib1g=1:1.2.11.dfsg-2 \
     curl \
     gnupg \
-    lsb-release
+    lsb-release \
+    libjpeg-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev
 
+RUN ln -s /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/
 RUN  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 RUN  echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
@@ -79,21 +83,24 @@ ARG CLEAN_PACKAGES=1
 RUN if [ "$CLEAN_PACKAGES" = "1" ]; then \
         apt-get -y --purge autoremove \
         git \
-        build-essential \
-        debhelper \
-        dh-python \
-        python-docutils \
-        python-sphinx \
-        fakeroot \
         bash-completion \
         locales \
-        aptly \
         python3-all \
         python3-pip \
         python3-dev \
         python3-wheel \
         python3-stdeb \
-        python3-setuptools; \
+        python3-setuptools \
+        gcc \
+        gfortran \
+        musl-dev \
+        #zlib1g \
+        curl \
+        gnupg \
+        lsb-release \
+        libjpeg-dev \
+        libjpeg62-turbo-dev \
+        libfreetype6-dev; \
     fi
 
 COPY ./scripts ./scripts
