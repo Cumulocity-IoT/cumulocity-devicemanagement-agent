@@ -309,6 +309,7 @@ class Agent():
             if message.messageId == '71':
                 self.token = message.values[0]
                 self.logger.info('New JWT Token received')
+                self.rest_client.update_token(self.token)
             for listener in self.__listeners:
                 self.logger.debug('Trigger listener ' +
                               listener.__class__.__name__)
