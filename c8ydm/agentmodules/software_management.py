@@ -18,8 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import json
+import re
 import logging
+from operator import contains
 import time
+import subprocess as sp
 
 from c8ydm.core.apt_package_manager import AptPackageManager
 from c8ydm.framework.modulebase import Initializer, Listener
@@ -27,6 +30,7 @@ from c8ydm.framework.smartrest import SmartRESTMessage
 
 
 class SoftwareManager(Listener, Initializer):
+    """ Software Update Module"""
     logger = logging.getLogger(__name__)
     apt_package_manager = AptPackageManager()
 
@@ -43,6 +47,17 @@ class SoftwareManager(Listener, Initializer):
         if result[-1] == []:
             result.pop()  # thx iBug's comment
         return result
+    
+    def get_filename_from_cd(self, cd):
+        """
+        Get filename from content-disposition
+        """
+        if not cd:
+            return None
+        fname = re.findall('filename=(.+)', cd)
+        if len(fname) == 0:
+            return None
+        return fname[0]
 
     def handleOperation(self, message):
         try:
@@ -51,6 +66,7 @@ class SoftwareManager(Listener, Initializer):
                 #self.logger.debug("message received :" + str(message.values))
                 messages = self.group(message.values, '\n')[0]
                 deviceId = messages.pop(0)
+                binary_included = False
                 self.logger.info('Software update for device ' +
                                  deviceId + ' with message ' + str(messages))
                 executing = SmartRESTMessage(
@@ -58,21 +74,50 @@ class SoftwareManager(Listener, Initializer):
                 self.agent.publishMessage(executing)
                 softwareToInstall = [messages[x:x + 4]
                                      for x in range(0, len(messages), 4)]
-                errors = self.apt_package_manager.install_software(
-                    softwareToInstall, True)
-                self.logger.info('Finished all software update')
-                if len(errors) == 0:
-                    # finished without errors
-                    finished = SmartRESTMessage(
-                        's/us', '503', ['c8y_SoftwareUpdate'])
+                for software in softwareToInstall:
+                    name = software[0]
+                    version = software[1]
+                    url = software[2]
+                    action = software[3]
+                    if 'binaries' in url:
+                        # File provided
+                        binary_included = True
+                if not binary_included:
+                    errors = self.apt_package_manager.install_software(
+                        softwareToInstall, True)
+                    self.logger.info('Finished all software update')
+                    if len(errors) == 0:
+                        # finished without errors
+                        finished = SmartRESTMessage(
+                            's/us', '503', ['c8y_SoftwareUpdate'])
+                    else:
+                        # finished with errors
+                        finished = SmartRESTMessage(
+                            's/us', '502', ['c8y_SoftwareUpdate', ' - '.join(errors)])
+                    self.agent.publishMessage(finished)
+                    self.agent.publishMessage(
+                        self.apt_package_manager.getInstalledSoftware(False))
                 else:
-                    # finished with errors
-                    finished = SmartRESTMessage(
-                        's/us', '502', ['c8y_SoftwareUpdate', ' - '.join(errors)])
-                self.agent.publishMessage(finished)
-                self.agent.publishMessage(
-                    self.apt_package_manager.getInstalledSoftware(False))
-
+                    # Binary included in software update
+                    self.logger.info(f'Software Updated with provided file {url}')
+                    file = self.agent.rest_client.download_c8y_binary(url)
+                    self.logger.info(f'File to be installed: {file}')
+                    if action == 'install' or action == 'update':
+                        #result = sp.run(["dpkg","-i", file], stdout=sp.PIPE, stderr=sp.PIPE)
+                        result = sp.run(["apt-get","-y","install",file], stdout=sp.PIPE, stderr=sp.PIPE)
+                        errors = result.stderr.decode("utf-8")
+                        self.logger.info(f'Result of subprocess Error: {errors}')
+                        if errors:
+                            failed = SmartRESTMessage('s/us', '502', ['c8y_SoftwareUpdate', errors])
+                            self.agent.publishMessage(failed)
+                        else:
+                            finished = SmartRESTMessage(
+                                's/us', '503', ['c8y_SoftwareUpdate'])
+                            self.agent.publishMessage(finished)
+                            self.agent.publishMessage(
+                                self.apt_package_manager.getInstalledSoftware(False))
+                    
+                
             if 's/ds' in message.topic and message.messageId == '516':
                 # When multiple operations received just take the first one for further processing
                 #self.logger.debug("message received :" + str(message.values))

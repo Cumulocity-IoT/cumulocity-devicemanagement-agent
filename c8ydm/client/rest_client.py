@@ -20,20 +20,26 @@ import requests
 import logging
 import json
 import datetime
+import re
 from base64 import b64encode
 
 
 class RestClient():
-
+    """ C8Y REST Client """
     def __init__(self, agent):
         self.logger = logging.getLogger(__name__)
         self.serial = agent.serial
         self.configuration = agent.configuration
+        self.file_path = agent.path / 'binaries'
+        self.file_path.mkdir(parents=True, exist_ok=True)
         self.base_url = agent.url
         if not self.base_url.startswith('http'):
             self.base_url = f'https://{self.base_url}'
         self.token = agent.token
 
+    def update_token(self, token):
+        self.token = token
+    
     def get_auth_header(self):
         if self.token:
             return {'Authorization': 'Bearer '+self.token}
@@ -246,8 +252,20 @@ class RestClient():
                 return None
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
-        
-    def download_c8y_binary(self, url, file):
+    
+    def get_filename_from_cd(self, cd):
+        """
+        Get filename from content-disposition
+        """
+        if not cd:
+            return None
+        fname = re.findall('filename="(.+)"', cd)
+        if len(fname) == 0:
+            return None
+        return fname[0]
+    
+
+    def download_c8y_binary(self, url):
         #self.logger.info('Update of managed Object')
         try:
             headers = self.get_auth_header()
@@ -259,10 +277,11 @@ class RestClient():
             self.logger.debug('Response from request: ' + str(response.text))
             self.logger.debug('Response from request with code : ' + str(response.status_code))
             if response.status_code == 200 or response.status_code == 201:
-                open(file,'wb').write(response.content)
-                # print(binaryurl)
-                # return binaryurl
-                return file
+                filename = self.get_filename_from_cd(response.headers.get('content-disposition'))
+                file = self.file_path / filename
+                file_str = str(file)
+                open(file, 'wb').write(response.content)
+                return file_str
             else:
                 self.logger.warning('Binary download failed in C8Y')
                 return None
