@@ -185,11 +185,19 @@ class Agent():
     def __init_agent(self):
         self.__listeners = []
         self.__sensors = []
+
+        # Refresh Token for REST Requests
+        if self.cert_auth:
+            self.logger.info("Starting refresh token thread ")
+            token_thread = threading.Thread(target=self.refresh_token)
+            token_thread.daemon = True
+            token_thread.name = f'TokenThread-1'
+            token_thread.start()
+               
         # set Device Name
         msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
         self.publishMessage(msg, 2, wait_for_publish=True)
-        #self.__client.publish(
-        #    "s/us", "100,"+self.device_name+","+self.device_type, 2).wait_for_publish()
+
         #self.logger.info(f'Device published!')
         configurationManager = ConfigurationManager(
             self.serial, self, self.configuration)
@@ -268,14 +276,7 @@ class Agent():
         for xid in self.__supportedTemplates:
             self.logger.info('Subscribing to XID: %s', xid)
             self.__client.subscribe('s/dc/' + xid)
-        if self.cert_auth:
-            self.logger.info("Starting refresh token thread ")
-            token_thread = threading.Thread(target=self.refresh_token)
-            token_thread.daemon = True
-            token_thread.name = f'TokenThread-1'
-            token_thread.start()
-            #_thread.start_new_thread(self.refresh_token)
-            # refresh_token_thread.start()
+
         # Set all dangling Operations to failed on Agent start
         internald_id = self.rest_client.get_internal_id(self.serial)
         ops = self.rest_client.get_all_dangling_operations(internald_id)
