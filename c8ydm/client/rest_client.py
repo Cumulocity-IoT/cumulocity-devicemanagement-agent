@@ -37,6 +37,9 @@ class RestClient():
             self.base_url = f'https://{self.base_url}'
         self.token = agent.token
 
+    def update_token(self, token):
+        self.token = token
+    
     def get_auth_header(self):
         if self.token:
             return {'Authorization': 'Bearer '+self.token}
