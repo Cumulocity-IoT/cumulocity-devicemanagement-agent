@@ -31,6 +31,15 @@ In Windows Shells like PS or CMD run:
     start.bat
     
 The script will build a docker image and starting one instance afterwards.
+
+If you don't want to clone this repo and build the image you can use the [prebuild docker image](https://hub.docker.com/repository/docker/switschel/c8ydm).
+
+    docker run switschel/c8ydm
+
+If you want docker management included just mount the docker sock to the container by adding
+
+    -v /var/run/docker.sock:/var/run/docker.sock
+
 Per default Bootstrapping is used and no other information is necessary. In this case the docker **container Id** is the device Id which should be entered when [registering a device in cumulocity](https://www.cumulocity.com/guides/users-guide/device-management/#device-registration-manually).
 
 You can find it out with:
@@ -130,7 +139,7 @@ You can find a reference agent.ini [here](/config/agent.ini)
 
 ## Environment variables
 
-The environment variables which with C8YDM_ prefix are mapped to configuration files.
+The environment variables with C8YDM_ prefix are mapped to configuration files.
 Mapping rules:
 
   - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
