@@ -1,12 +1,12 @@
 FROM debian:11-slim
-ARG DEB_MIRROR=http://ftp.de.debian.org/debian
+
 
 # Install additional packages.
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINER=docker
-RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
-    && apt-get update \
-    && apt-get -y install --no-install-recommends --allow-downgrades \
+RUN apt-get update \
+    && apt-get -y full-upgrade \
+    && apt-get -y install \
     python3 \
     python3-setuptools \
     python3-apt \
@@ -24,32 +24,23 @@ RUN echo "deb ${DEB_MIRROR} bullseye main" > /etc/apt/sources.list \
     fakeroot \
     bash-completion \
     locales \
-    zlib1g=1:1.2.11.dfsg-2 \
-    aptly
-
-# Fix locale errors
-RUN localedef -i en_US -f UTF-8 en_US.UTF-8
+    zlib1g \
+    aptly \
+    curl \
+    lsb-release
 
 #
 # Install Docker CE CLI
 #
+RUN  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+RUN  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 RUN apt-get update \
-    && apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common lsb-release \
-    && curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | apt-key add - 2>/dev/null \
-    && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') $(lsb_release -cs) stable" \
-    && apt-get update \
-    && apt-get install -y docker-ce-cli \
-    #
-    # Install Docker Compose
-    && curl -sSL "https://github.com/docker/compose/releases/download/1.28.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && chmod +x /usr/local/bin/docker-compose
+    && apt-get -y install docker-ce-cli
 
-# Add powershell and PSc8y
-RUN curl -O https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb \
-    && dpkg -i packages-microsoft-prod.deb \
-    && apt-get update \
-    && apt-get install -y powershell \
-    && pwsh -c "Install-Module -Name PSc8y -Repository PSGallery -AllowPrerelease -Force"
+# Install Docker Compose
+RUN pip3 install docker-compose
 
 # Set root passwd for container
 RUN mkdir /var/run/sshd
@@ -71,14 +62,10 @@ RUN mkdir $HOME/.cumulocity
 COPY ./config/agent.ini /root/.cumulocity/agent.ini
 
 # # Install requirements (using pip)
-COPY requirements.txt .
-COPY tests/requirements.txt tests/requirements.txt
+COPY setup.py README.md requirements.txt ./
+COPY ./c8ydm ./c8ydm
+COPY ./scripts ./scripts
+COPY ./tests ./tests
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt -r tests/requirements.txt
-
-COPY setup.py .
-COPY README.md .
-COPY ./c8ydm ./c8ydm
 RUN pip3 install .
-
-COPY ./scripts ./scripts
