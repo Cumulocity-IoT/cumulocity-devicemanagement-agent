@@ -61,6 +61,7 @@ class Agent():
         self.device_type = self.configuration.getValue('agent', 'type')
 
         self.stop_event = threading.Event()
+        self.token_received = threading.Event()
         self.refresh_token_interval = 60
         self.token = None
         self.is_connected = False
@@ -193,7 +194,11 @@ class Agent():
             token_thread.daemon = True
             token_thread.name = f'TokenThread-1'
             token_thread.start()
-               
+        
+        self.__client.subscribe('s/e')
+        self.__client.subscribe('s/ds')
+        self.__client.subscribe('s/dat')
+
         # set Device Name
         msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
         self.publishMessage(msg, 2, wait_for_publish=True)
@@ -268,19 +273,16 @@ class Agent():
             's/us', 110, [self.serial, self.model, '1.0'])
         self.publishMessage(modelMsg)
 
-        self.__client.subscribe('s/e')
-        self.__client.subscribe('s/ds')
-        self.__client.subscribe('s/dat')
-
         # subscribe additional topics
         for xid in self.__supportedTemplates:
             self.logger.info('Subscribing to XID: %s', xid)
             self.__client.subscribe('s/dc/' + xid)
 
         # Set all dangling Operations to failed on Agent start
-        internald_id = self.rest_client.get_internal_id(self.serial)
-        ops = self.rest_client.get_all_dangling_operations(internald_id)
-        self.rest_client.set_operations_to_failed(ops)
+        if self.token_received.wait(timeout=self.refresh_token_interval):
+            internald_id = self.rest_client.get_internal_id(self.serial)
+            ops = self.rest_client.get_all_dangling_operations(internald_id)
+            self.rest_client.set_operations_to_failed(ops)
 
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -311,6 +313,7 @@ class Agent():
                 self.token = message.values[0]
                 self.logger.info('New JWT Token received')
                 self.rest_client.update_token(self.token)
+                self.token_received.set()
             for listener in self.__listeners:
                 self.logger.debug('Trigger listener ' +
                               listener.__class__.__name__)

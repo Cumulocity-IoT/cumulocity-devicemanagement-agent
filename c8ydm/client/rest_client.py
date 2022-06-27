@@ -317,7 +317,7 @@ class RestClient():
             self.logger.error('The following error occured: %s' % (str(e)))
 
     def set_operations_to_failed(self, operations):
-        if len(operations) > 0:
+        if operations and len(operations) > 0:
             try:
                 for op in operations:
                     url = f'{self.base_url}/devicecontrol/operations/{op["id"]}'

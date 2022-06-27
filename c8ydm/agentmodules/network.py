@@ -59,9 +59,13 @@ class Network(Initializer):
     def get_geo_data(self):
         """ Retrieves GEO-Data """
         try:
-            geo_data = requests.get(f'https://ipapi.co/json/').json()
-            self.logger.debug(f'Geo-Data: {geo_data}')
-            return geo_data
+            response = requests.get(f'https://ipapi.co/json/')
+            if response.status_code == 200:
+                geo_data = response.json()
+                self.logger.debug(f'Geo-Data: {geo_data}')
+                return geo_data
+            else:
+                return None
         except Exception as ex:
             self.logger.error(f'Error retrieving Geodata: {ex}')
             return None
