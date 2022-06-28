@@ -59,7 +59,7 @@ class LogfileInitializer(Initializer, Listener):
                 # When multiple operations received just take the first one for further processing
                 #self.logger.debug("message received :" + str(message.values))
                 deviceid = message.values[0]
-                #logtype = message.values[1]
+                logname = message.values[1]
                 starttime = message.values[2]
                 endtime = message.values[3]
                 searchtext = message.values[4]
@@ -102,9 +102,8 @@ class LogfileInitializer(Initializer, Listener):
                                                 i+=1
                                                 outputfound = True
                         memFile = io.BytesIO(newOutput.encode('utf8'))
-                        payload = {'object' : '{"name" : "logfile'+ deviceid+'", "type" : "text/plain" }'}
-                        file = [('file' , memFile)]
-                        binaryurl = self.agent.rest_client.upload_event_logfile(mo_id, payload, file)
+                        files = {'object': (None, '{ "name": '+logname+'_'+ deviceid +', type: text/plain }'), 'file': (logname+'_'+ deviceid, memFile, 'text/plain')}
+                        binaryurl = self.agent.rest_client.upload_event_logfile(mo_id, files)
                         if binaryurl:
                             self._set_success(binaryurl)
                             self.logger.debug("LogHandler uploaded Binary under following URL: "+binaryurl)
@@ -129,9 +128,8 @@ class LogfileInitializer(Initializer, Listener):
                                             i+=1
                                             outputfound = True
                         memFile = io.BytesIO(newOutput.encode('utf8'))
-                        payload = {'object' : '{"name" : "logfile'+ deviceid+'", "type" : "text/plain" }'}
-                        file = [('file' , memFile)]
-                        binaryurl = self.agent.rest_client.upload_event_logfile(mo_id, payload, file)
+                        files = {'object': (None, '{ "name": '+logname+'_'+ deviceid +', type: text/plain }'), 'file': (logname+'_'+ deviceid, memFile, 'text/plain')}
+                        binaryurl = self.agent.rest_client.upload_event_logfile(mo_id, files)
                         if binaryurl:
                             self._set_success(binaryurl)
                             self.logger.debug("LogHandler uploaded Binary under following URL: "+binaryurl)
