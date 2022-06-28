@@ -41,13 +41,11 @@ class UploadConfigfileInitializer(Initializer, Listener):
 
     def _set_executing(self):
         executing = SmartRESTMessage('s/us', '501', [self.fragment])
-        print("Executing MSG send")
         self.agent.publishMessage(executing)
 
     #datei anhängen
     def _set_success(self, url):
         success = SmartRESTMessage('s/us', '503', [self.fragment, url])
-        print("Success MSG send")
         self.agent.publishMessage(success)
 
     def _set_failed(self, reason):
@@ -70,9 +68,10 @@ class UploadConfigfileInitializer(Initializer, Listener):
                     if isfile(path):
                         f = open(path, "rb")
                         memFile = f.read()
-                        payload = {'object' : '{"name" : "configfile'+ deviceid+'", "type" : "text/plain" }'}
-                        file = [('file' , memFile)]
-                        binaryurl = self.agent.rest_client.upload_event_configfile(mo_id, payload, file, configtype, str(path))
+                        #payload = {'object' : '{"name" : "configfile'+ deviceid+'", "type" : "text/plain" }'}
+                        #file = [('file' , memFile)]
+                        files = {'object': (None, '{ "name": "'+configtype+'_'+deviceid +'", type: "text/plain" }'), 'file': (configtype+ '_'+ deviceid, memFile, 'text/plain')}
+                        binaryurl = self.agent.rest_client.upload_event_configfile(mo_id, files, configtype, str(path))
                         if binaryurl:
                             self._set_success(binaryurl)
                             self.logger.debug("UploadConfigHandler uploaded Binary under following URL: "+binaryurl)

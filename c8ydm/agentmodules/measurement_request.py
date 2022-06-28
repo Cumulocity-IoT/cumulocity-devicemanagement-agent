@@ -41,13 +41,13 @@ class MeasurementRequestHandler(Initializer, Listener):
 
     def _set_executing(self):
         executing = SmartRESTMessage('s/us', '501', [self.fragment])
-        print("Executing MSG send")
+        #print("Executing MSG send")
         self.agent.publishMessage(executing)
 
     #datei anhängen
     def _set_success(self):
         success = SmartRESTMessage('s/us', '503', [self.fragment,'CPU:RAM:DISK'])
-        print("Success MSG send")
+        #print("Success MSG send")
         self.agent.publishMessage(success)
 
     def _set_failed(self, reason):

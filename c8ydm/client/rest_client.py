@@ -216,8 +216,6 @@ class RestClient():
             if response.status_code == 200 or response.status_code == 201:
                 json_data = json.loads(response.text)
                 binaryurl = json_data["self"]
-                # print(binaryurl)
-                # return binaryurl
                 return binaryurl
             else:
                 self.logger.warning('Binary upload failed in C8Y')
@@ -225,7 +223,7 @@ class RestClient():
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
     
-    def upload_event_configfile(self, mo_id, payload, file, configtype, path):
+    def upload_event_configfile(self, mo_id, file, configtype, path):
         #self.logger.info('Update of managed Object')
         try:
             event_id = self.create_configfile_event(mo_id,configtype,path)
@@ -237,7 +235,7 @@ class RestClient():
             headers['Accept'] = 'application/json'
             self.logger.debug(f'Sending Request to url {url}')
             response = requests.request(
-                "POST", url, headers=headers, data=payload, files=file)
+                "POST", url, headers=headers, files=file)
             self.logger.debug('Response from request: ' + str(response.text))
             self.logger.debug(
                 'Response from request with code : ' + str(response.status_code))
