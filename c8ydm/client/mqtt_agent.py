@@ -194,6 +194,9 @@ class Agent():
             token_thread.daemon = True
             token_thread.name = f'TokenThread-1'
             token_thread.start()
+        else:
+            # For non cert-auth don't wait for token retrieval.
+            self.token_received.set()
         
         self.__client.subscribe('s/e')
         self.__client.subscribe('s/ds')

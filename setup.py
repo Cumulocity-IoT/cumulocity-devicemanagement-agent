@@ -27,7 +27,7 @@ setup(
       name='c8ydm',
       long_description=long_description,
       long_description_content_type="text/markdown",
-      version='1.1.3',
+      version='1.1.4',
       description='Cumulocity Device Management Agent',
       author='Tobias Sommer, Stefan Witschel, Marco Stoffel, Murat Bayram',
       author_email="Stefan.Witschel@softwareag.com",
