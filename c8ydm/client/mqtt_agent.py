@@ -314,7 +314,7 @@ class Agent():
                           message.topic, message.getMessage())
             if message.messageId == '71':
                 self.token = message.values[0]
-                self.logger.info('New JWT Token received')
+                self.logger.debug('New JWT Token received')
                 self.rest_client.update_token(self.token)
                 self.token_received.set()
             for listener in self.__listeners:
@@ -355,7 +355,7 @@ class Agent():
     def refresh_token(self):
         self.stop_event.clear()
         while True:
-            self.logger.info("Refreshing Token")
+            self.logger.debug("Refreshing Token")
             self.__client.publish('s/uat','',2)
             if self.stop_event.wait(timeout=self.refresh_token_interval):
                 self.logger.info("Exit Refreshing Token Thread")
