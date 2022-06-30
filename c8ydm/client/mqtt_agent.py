@@ -198,10 +198,6 @@ class Agent():
             # For non cert-auth don't wait for token retrieval.
             self.token_received.set()
         
-        self.__client.subscribe('s/e')
-        self.__client.subscribe('s/ds')
-        self.__client.subscribe('s/dat')
-
         # set Device Name
         msg = SmartRESTMessage('s/us', '100', [self.device_name, self.device_type])
         self.publishMessage(msg, 2, wait_for_publish=True)
@@ -275,6 +271,10 @@ class Agent():
         modelMsg = SmartRESTMessage(
             's/us', 110, [self.serial, self.model, '1.0'])
         self.publishMessage(modelMsg)
+
+        self.__client.subscribe('s/e')
+        self.__client.subscribe('s/ds')
+        self.__client.subscribe('s/dat')
 
         # subscribe additional topics
         for xid in self.__supportedTemplates:
