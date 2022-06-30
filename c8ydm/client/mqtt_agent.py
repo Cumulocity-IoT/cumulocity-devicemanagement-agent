@@ -187,6 +187,9 @@ class Agent():
         self.__listeners = []
         self.__sensors = []
 
+        self.__client.subscribe('s/e')
+        self.__client.subscribe('s/dat')
+
         # Refresh Token for REST Requests
         if self.cert_auth:
             self.logger.info("Starting refresh token thread ")
@@ -272,9 +275,8 @@ class Agent():
             's/us', 110, [self.serial, self.model, '1.0'])
         self.publishMessage(modelMsg)
 
-        self.__client.subscribe('s/e')
+        # If supported Operations is set subscribe to s/ds
         self.__client.subscribe('s/ds')
-        self.__client.subscribe('s/dat')
 
         # subscribe additional topics
         for xid in self.__supportedTemplates:
