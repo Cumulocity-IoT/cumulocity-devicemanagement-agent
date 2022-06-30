@@ -66,11 +66,21 @@ class FirmwareManagement(Listener, Initializer):
                 self._set_executing()
                 firmwareToInstall = [messages[x:x + 3]
                                      for x in range(0, len(messages), 3)]
+                self.logger.debug('Firmware Update for device ' +
+                                 deviceId + ' with message ' + str(messages))
+                for firmware in firmwareToInstall:
+                    name = firmware[0]
+                    version = firmware[1]
+                    url = firmware[2]
+                    firmware_msg = SmartRESTMessage('s/us', '115', [name, version, url])
+                    self.agent.publishMessage(firmware_msg)
+                self._set_success()
+
                 #TODO Handle Firmware Update properly. Not working for Docker and Raspberry Pi.
-                self._set_failed('Firmware Update triggered but not supported by this device type')
-                alarmMsg = SmartRESTMessage('s/us', '304', ['c8y_FirmwareUpdateAlarm','Firmware Update triggered but not supported by this device type',''])
+                #self._set_failed('Firmware Update triggered but not supported by this device type')
+                #alarmMsg = SmartRESTMessage('s/us', '304', ['c8y_FirmwareUpdateAlarm','Firmware Update triggered but not supported by this device type',''])
                 #eventMsg = SmartRESTMessage('s/us', '400', ['c8y_FirmwareUpdateEvent', 'Firmware could not be updated as it is not supported by the current Device.'])
-                self.agent.publishMessage(alarmMsg)
+                #self.agent.publishMessage(alarmMsg)
                 """ if is_simulated:
                     #No Firmware Updates are currently supported for docker containers
                     self._set_failed('No Firmware Updates are currently supported for docker containers!')
@@ -79,6 +89,25 @@ class FirmwareManagement(Listener, Initializer):
                     self.logger.info('Finished firmware update')
                     #TODO Update Firmware Version
                 """
+            # Patch handling
+            if 's/ds' in message.topic and message.messageId == '525':
+                messages = self.group(message.values, '\n')[0]
+                deviceId = messages.pop(0)
+                self.logger.info('Firmware Patch for device ' +
+                                 deviceId + ' with message ' + str(messages))
+                self._set_executing()
+                firmwareToInstall = [messages[x:x + 4]
+                                     for x in range(0, len(messages), 4)]
+                self.logger.debug('Firmware Update for device ' +
+                                 deviceId + ' with message ' + str(messages))
+                for firmware in firmwareToInstall:
+                    name = firmware[0]
+                    version = firmware[1]
+                    url = firmware[2]
+                    dependency_version = firmware[3]
+                    firmware_msg = SmartRESTMessage('s/us', '115', [name, version, url])
+                    self.agent.publishMessage(firmware_msg)
+                self._set_success()
         except Exception as e:
             self._set_failed(e)
 
