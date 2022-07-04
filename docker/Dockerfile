@@ -26,11 +26,12 @@ RUN apt-get update \
     && apt-get -y install docker-ce-cli
 
 # Install VNC server and desktop environment
-ARG INSTALL_VNC=0
+ARG INSTALL_VNC=1
 RUN if [ "$INSTALL_VNC" = "1" ]; then \
         apt-get -y install \
         xfce4 \
         xfce4-goodies \
+        dbus-x11 \
         tightvncserver \
         # Set VNC server password
         && mkdir /root/.vnc \

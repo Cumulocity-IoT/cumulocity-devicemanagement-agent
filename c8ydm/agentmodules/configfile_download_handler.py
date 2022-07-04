@@ -74,7 +74,7 @@ class DownloadConfigfileInitializer(Initializer, Listener):
                         if pathlib.Path(dirname(configfiles[configtype])).exists():
                             process = subprocess.Popen(["cp",str(path),f'{str(path)}_backup'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                             process.wait()
-                            if self.agent.rest_client.download_c8y_binary(binaryurl,str(path)) is not None:
+                            if self.agent.rest_client.download_c8y_binary(binaryurl) is not None:
                                 eventMsg = SmartRESTMessage('s/us', '400', ['c8y_ConfigDownloadEvent', f'Config {configtype} was downloaded to {str(path)}. Backup of old config file was created.'])
                                 self.agent.publishMessage(eventMsg)
                                 self._set_success(binaryurl)
