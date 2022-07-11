@@ -32,16 +32,18 @@ class DockerSensor(Sensor, Initializer, Listener):
     def getSensorMessages(self):
         #self.logger.info(f'Docker Update Loop called...')
         payload = self.docker_watcher.get_stats()
-        internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-        self.agent.rest_client.update_managed_object(internal_id, payload)
+        if payload is not None:
+            internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
+            self.agent.rest_client.update_managed_object(internal_id, payload)
         return []
 
     def getMessages(self):
         self.logger.info(f'Docker Initializer called...')
         payload = self.docker_watcher.get_stats()
-        if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
-            internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-            self.agent.rest_client.update_managed_object(internal_id, payload)
+        if payload is not None:
+            if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
+                internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
+                self.agent.rest_client.update_managed_object(internal_id, payload)
         return []
     
     def _set_executing(self):

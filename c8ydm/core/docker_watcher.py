@@ -24,35 +24,47 @@ from c8ydm.framework.smartrest import SmartRESTMessage
 
 class DockerWatcher:
     logger = logging.getLogger(__name__)
+    docker_active = True
 
     def get_stats(self):
-        try:
-            rawStats = subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}}'"],stdout=subprocess.PIPE)
-            list = rawStats.stdout.read().decode('utf-8').split('\n')
-            a = []
-            for i in list:
-                dict = {}
-                for counter,value in enumerate(i.split(';')):
-                    if counter == 0:
-                        dict["containerID"] = value.replace("'","")
-                    if counter == 1:
-                        dict["name"] = value
-                        nameString = "name=" + str(value)
-                        try:
-                            rawStatus = subprocess.Popen(["docker", "ps", "-a", "--format", "'{{.Status}}'", "--filter", nameString ],stdout=subprocess.PIPE)
-                            dict["status"] = rawStatus.stdout.read().decode('utf-8').replace("'","")
-                        except:
-                            self.logger.warning('Status from docker for container %s not valid.'% (str(value)))
-                            dict["status"] = "Unknown"
-                    if counter == 2:
-                        dict["cpu"] = value.replace('%','')
-                    if counter == 3:
-                        dict["memory"] = value.replace('%','').replace("'","")
-                a.append(dict)
-            a = a[:-1]
-            payload = {}
-            payload['c8y_Docker'] = a
-            self.logger.debug('The following Docker stats where found: %s'% (str(payload)))
-            return json.dumps(payload)
-        except Exception as e:
-            self.logger.error('The following error occured: %s'% (str(e)))
+            try:
+                subprocess.Popen(["docker"],stdout=subprocess.PIPE)
+                self.docker_active = True
+            except Exception as os_ex:
+                if self.docker_active:
+                    self.logger.warn(f'Docker is not installed, skipping module')
+                    self.docker_active = False
+                #self.logger.info(f'Docker Status {self.docker_active}')
+            if self.docker_active:
+                try:
+                    rawStats = subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}}'"],stdout=subprocess.PIPE)
+                    list = rawStats.stdout.read().decode('utf-8').split('\n')
+                    a = []
+                    for i in list:
+                        dict = {}
+                        for counter,value in enumerate(i.split(';')):
+                            if counter == 0:
+                                dict["containerID"] = value.replace("'","")
+                            if counter == 1:
+                                dict["name"] = value
+                                nameString = "name=" + str(value)
+                                try:
+                                    rawStatus = subprocess.Popen(["docker", "ps", "-a", "--format", "'{{.Status}}'", "--filter", nameString ],stdout=subprocess.PIPE)
+                                    dict["status"] = rawStatus.stdout.read().decode('utf-8').replace("'","")
+                                except:
+                                    self.logger.warning('Status from docker for container %s not valid.'% (str(value)))
+                                    dict["status"] = "Unknown"
+                            if counter == 2:
+                                dict["cpu"] = value.replace('%','')
+                            if counter == 3:
+                                dict["memory"] = value.replace('%','').replace("'","")
+                        a.append(dict)
+                    a = a[:-1]
+                    payload = {}
+                    payload['c8y_Docker'] = a
+                    self.logger.debug('The following Docker stats where found: %s'% (str(payload)))
+                    return json.dumps(payload)
+                except Exception as e:
+                    self.logger.error('The following error occured: %s'% (str(e)))
+            else:
+                return None
