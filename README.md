@@ -2,6 +2,63 @@
 Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the [Device Management Capabilities](https://cumulocity.com/guides/users-guide/device-management/) of [Cumulocity IoT](https://www.softwareag.cloud/site/product/cumulocity-iot.html)
 
 # Quick Start
+
+The agent can be run in a docker container or natively on a device with preferrable with linux OS (e.g raspberry pi) or any other operating system.
+
+The docker version is mainly used to simulate a device including a SSH + VNC server for Remote Access. It can be also used to simulatoe multiple instances of the agent & devices.
+
+The native version is mainly used when connecting physical devices with real capabilities and sensors attached.
+
+## Docker
+To quickly run the agent you can use the [prebuild docker image](https://hub.docker.com/repository/docker/switschel/c8ydm).
+
+    docker run switschel/c8ydm
+
+If you want docker management included just mount the docker sock to the container by adding
+
+    -v /var/run/docker.sock:/var/run/docker.sock
+
+Per default Bootstrapping is used and no other information is necessary. In this case the docker **container Id** is the device Id which should be entered when [registering a device in cumulocity](https://www.cumulocity.com/guides/users-guide/device-management/#device-registration-manually).
+
+You can find it out with:
+    
+    docker ps
+
+If you don't want to use the prebuild image for any reason (e.g. you want to make changes to the docker image) just clone the repo and in a linux shell of your choice use:
+
+    chmod +x start.sh & ./start.sh
+
+In windows shells like PS or CMD run:
+    
+    start.bat
+    
+The script will build a docker image and starting one instance afterwards.
+
+If you want to run the Agent without using docker you need to [build](#build) and  [run](#run) the Agent manually.
+
+### Docker Quick Start Configuration
+
+To configure the agent you can mount the [agent.ini](./config/agent.ini) to the docker image by using
+
+    -v {{path-to-your-local-agent.ini}}:/root/.cumulocity/agent.ini
+
+As an alternative you can use [environment variables](#environment-variables) to overwrite the default values in the agent.ini within the image.
+
+For the local docker build you can use two options either to change the docker image:
+1. Enable/Disable VNC as part of the docker image (1 per default)
+
+    ```
+    INSTALL_VNC=1 ./start.sh
+    ```
+
+2. By default, the docker container runs in background. If you want to run it interactively:
+
+    ```
+    INTERACTIVE=1 ./start.sh
+    ```
+
+If you don't want to run within docker follow the steps below.
+
 ## Native
 
 To quickly run the agent natively make sure pyhton 3.7+ and pip is installed on your computer. 
@@ -21,58 +78,6 @@ and to stop run
     c8ydm.stop
 
 
-## Docker
-To quickly run the agent clone this repo somewhere on your disk, make sure that Docker is installed on your computer and run in a Linux Shell:
-
-    ./start.sh
-
-In Windows Shells like PS or CMD run:
-    
-    start.bat
-    
-The script will build a docker image and starting one instance afterwards.
-
-If you don't want to clone this repo and build the image you can use the [prebuild docker image](https://hub.docker.com/repository/docker/switschel/c8ydm).
-
-    docker run switschel/c8ydm
-
-If you want docker management included just mount the docker sock to the container by adding
-
-    -v /var/run/docker.sock:/var/run/docker.sock
-
-Per default Bootstrapping is used and no other information is necessary. In this case the docker **container Id** is the device Id which should be entered when [registering a device in cumulocity](https://www.cumulocity.com/guides/users-guide/device-management/#device-registration-manually).
-
-You can find it out with:
-    
-    docker ps
-
-If you want to run the Agent without using docker you need to [build](#build) and  [run](#run) the Agent manually.
-### Quick Start Configuration (Docker)
-
-The DM Agent configuration can be either set by changing the [agent.ini](./config/agent.ini) or setting variables **before** you build or start the container.
-For example to use [Device Certificates](https://cumulocity.com/guides/device-sdk/mqtt/#device-certificates) you can use the following ENV Variables.
-
-```
-C8YDM_MQTT_URL=<tenant domain> \
-C8YDM_MQTT_CERT_AUTH=TRUE \
-C8YDM_MQTT_CLIENT_CERT=<path to cert file> \
-C8YDM_MQTT_CLIENT_KEY=<path to key file>
-```
-As normal run ./start.sh afterwards.
-
-If you want to use Cloud Remote Access with a VNC server, you can install the server and a desktop environment:
-
-```
-INSTALL_VNC=1 ./start.sh
-```
-
-By default, the docker container runs in background. If you want to run it interactively:
-
-```
-INTERACTIVE=1 ./start.sh
-```
-
-If you don't want to run within docker follow the steps below.
 
 # Features
 
@@ -139,12 +144,17 @@ You can find a reference agent.ini [here](/config/agent.ini)
 
 ## Environment variables
 
-The environment variables with C8YDM_ prefix are mapped to configuration files.
+The environment variables with "C8YDM_" prefix are mapped to configuration files.
 Mapping rules:
 
-  - Prefix C8YDM_<PREFIX>_ means what section the option belongs to
+  - Prefix C8YDM_{{CATEGORY}} means what category the option belongs to
   - Upper case letters are mapped to lower case letters
   - Double underscore __ is mapped to .
+
+Examples: 
+
+    C8YDM_MQTT_CERT_AUTH => mqtt.cert_auth 
+    C8YDM_AGENT_MAIN__LOOP__INTERVAL__SECONDS => agent.main.loop.interval.seconds
 
 # Build
 
@@ -251,7 +261,7 @@ In the background the Agent will be build and started. Also a debug/run configur
 
 ### Using certificate authentication
 
-You can generate certificates necessary to certficate authentication, and you can upload the generated root certificate o your tenant's trusted certificate list by executing the scripts like below:
+You can generate certificates necessary to certficate authentication, and you can upload the generated root certificate to your tenant's trusted certificate list by executing the scripts like below:
 
 ```
 ./scripts/generate_cert.sh \

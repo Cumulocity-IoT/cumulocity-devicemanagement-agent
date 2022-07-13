@@ -40,12 +40,12 @@ setup(
             ],
       },
       install_requires=[
-        "paho-mqtt>=1.5.1",
-        "psutil>=5.8.0",
-        "requests>=2.25.1",
+        "paho-mqtt>=1.6.1",
+        "psutil>=5.9.1",
+        "requests>=2.28.1",
         "c8y-device-proxy>=1.1.1",
-        "certifi>=2021.10.8",
-        "distro>=1.6.0",
-        "sense-hat>=2.2.0"
+        "certifi>=2022.6.15",
+        "distro>=1.7.0",
+        "sense-hat>=2.3.1"
     ],
       zip_safe=False)
