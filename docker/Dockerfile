@@ -51,7 +51,7 @@ RUN echo "source /etc/profile.d/bash_completion.sh" >> "/root/.bashrc"
 WORKDIR /root
 
 RUN mkdir $HOME/.cumulocity
-COPY ./config/agent.ini /root/.cumulocity/agent.ini
+COPY ./config/ /root/.cumulocity/
 COPY ./config/DM_Agent.json /root/.cumulocity/DM_Agent.json
 
 # # Install requirements (using pip)
@@ -79,7 +79,7 @@ RUN if [ "$CLEAN_PACKAGES" = "1" ]; then \
         gfortran \
         musl-dev \
         #zlib1g \
-        curl \
+        # curl \
         gnupg \
         lsb-release \
         libjpeg-dev \

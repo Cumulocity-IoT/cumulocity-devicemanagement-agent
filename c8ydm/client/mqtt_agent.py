@@ -188,7 +188,7 @@ class Agent():
         self.__sensors = []
 
         self.__client.subscribe('s/e')
-        self.__client.subscribe('s/dat')
+        #self.__client.subscribe('s/dat',2)
 
         # Refresh Token for REST Requests
         if self.cert_auth:
@@ -245,6 +245,7 @@ class Agent():
             else:
                 currentInitializer = initializer(self.serial, self)
                 classCache[initializer.__name__] = currentInitializer
+            
             init_thread = threading.Thread(target=self.handle_initializer_message, args=(currentInitializer,))
             init_thread.daemon = True
             init_thread.name = f'InitializerThread-{currentInitializer.__class__.__name__}'
@@ -277,6 +278,7 @@ class Agent():
 
         # If supported Operations is set subscribe to s/ds
         self.__client.subscribe('s/ds')
+        self.__client.subscribe('s/dat',2)
 
         # subscribe additional topics
         for xid in self.__supportedTemplates:
@@ -284,10 +286,10 @@ class Agent():
             self.__client.subscribe('s/dc/' + xid)
 
         # Set all dangling Operations to failed on Agent start
-        if self.token_received.wait(timeout=self.refresh_token_interval):
-            internald_id = self.rest_client.get_internal_id(self.serial)
-            ops = self.rest_client.get_all_dangling_operations(internald_id)
-            self.rest_client.set_operations_to_failed(ops)
+      
+        internald_id = self.rest_client.get_internal_id(self.serial)
+        ops = self.rest_client.get_all_dangling_operations(internald_id)
+        self.rest_client.set_operations_to_failed(ops)
 
 
     def __on_connect(self, client, userdata, flags, rc):
@@ -356,9 +358,10 @@ class Agent():
 
     def refresh_token(self):
         self.stop_event.clear()
+        time.sleep(5)
         while True:
             self.logger.debug("Refreshing Token")
-            self.__client.publish('s/uat','',2)
+            self.__client.publish('s/uat','',0)
             if self.stop_event.wait(timeout=self.refresh_token_interval):
                 self.logger.info("Exit Refreshing Token Thread")
                 break

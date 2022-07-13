@@ -9,7 +9,7 @@ The docker version is mainly used to simulate a device including a SSH + VNC ser
 
 The native version is mainly used when connecting physical devices with real capabilities and sensors attached.
 
-## Docker
+## Docker Quick Start
 To quickly run the agent you can use the [prebuild docker image](https://hub.docker.com/repository/docker/switschel/c8ydm).
 
     docker run switschel/c8ydm
@@ -38,13 +38,16 @@ If you want to run the Agent without using docker you need to [build](#build) an
 
 ### Docker Quick Start Configuration
 
-To configure the agent you can mount the [agent.ini](./config/agent.ini) to the docker image by using
+To configure the agent you can mount the [agent.ini](./config/agent.ini) to the docker image by using in the docker run command:
 
     -v {{path-to-your-local-agent.ini}}:/root/.cumulocity/agent.ini
 
-As an alternative you can use [environment variables](#environment-variables) to overwrite the default values in the agent.ini within the image.
+As an alternative you can use [environment variables](#environment-variables) to overwrite the default values in the agent.ini within the image. Here is an example to change the loglevel:
 
-For the local docker build you can use two options either to change the docker image:
+    -e C8YDM_AGENT_LOGLEVEL=DEBUG
+
+For the local docker build you can use three options to change the docker image:
+
 1. Enable/Disable VNC as part of the docker image (1 per default)
 
     ```
@@ -56,8 +59,42 @@ For the local docker build you can use two options either to change the docker i
     ```
     INTERACTIVE=1 ./start.sh
     ```
+3. Generate self-signed certificates and using certificate based authentication
 
-If you don't want to run within docker follow the steps below.
+    ```
+    USE_CERTS=1 ./start.sh
+    ```
+### Quick Start with Device Certificates in docker container
+
+The agent contains scripts for generating & uploading self-signed certificates. To use them additional informatiopn as environment variables are needed. You can use the [use_certs.env](./use_certs.env) file as a template to provide them or add the environment variables using "-e" command of docker. 
+
+Here is an example env file to generate a self signed certificate and upload it to a target tenant:
+
+    C8YDM_MQTT_CERT_AUTH=true
+    C8YDM_MQTT_URL=mqtt.eu-latest.cumulocity.com
+    CERT_TENANT=<tenantID>
+    CERT_USER=<username>
+    CERT_PASSWORD=<password>
+
+The easiest way is to use the --env-file comand of docker to load it. Example:
+
+    docker run --env-file use_certs.env switschel/c8ydm
+
+or for the local image run after maintaining the [use_certs.env](./use_certs.env):
+
+    USE_CERTS=1 ./start.sh
+
+If you have your own certificates already you have multiple options to use them. In all cases you must make use of the "device.id" property in the agent.ini to set a device ID you used to generate the certificates.
+
+**Option 1:** Mount the whole config folder to the docker container containing the certs and adapted agent.ini. Make sure that you set the properties accordingly and that the cert paths are pointing to the location /root/.cumulocity/certs: 
+
+    -v {{path-to-your-local-config-folder}}:/root/.cumulocity/
+
+
+**Option 2:** Mount the certificates and adapt the config using environment variables
+
+**Option 3:** Before building the docker image locally copy the certs to "config/certs" folder, change the agent.ini, [build](#building-docker-image) the image and [run](#docker) the image. 
+
 
 ## Native
 
@@ -219,11 +256,13 @@ c8ydm.start
 ```
 in your console when you used [Building via pip](#building-via-pip) to build and install the agent.
 
-## apt / Debian package
+## apt / debian package
 
 Before running the agent some manual steps need to be taken
 
 1. Manually put the [config file](./config/agent.ini) and the [DM_Agent.json](./config/DM_Agent.json) into ~/.cumulocity folder. ~ stands for the current user folder. The SmartRESTTemplate will be automatically uploaded on first start.
+
+2. You have to install "c8y-device-proxy" via pip or using the provided deb file of the [C8Y Device Proxy](https://github.com/SoftwareAG/cumulocity-remote-access-agent/releases/download/v1.1.1/python3-c8y-device-proxy_1.1.1-1_all.deb)
 
 You can run the agent by executing (as root, otherwise add "sudo")
 
@@ -241,7 +280,7 @@ docker run -d -v /var/run/docker.sock:/var/run/docker.sock dm-image
 ```
 in your console when you used [Building Docker Image](#building-docker-image) to build and install the agent.
 
-The config can be mounted the container. Otherwise the default config will be used.
+The config can be mounted the container. Otherwise the default config will be used. See [Docker Quick Start Configuration](#docker-quick-start-configuration)
 
 ## Mass deployment
 

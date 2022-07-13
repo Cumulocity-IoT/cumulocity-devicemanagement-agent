@@ -23,7 +23,16 @@ if [ "${INTERACTIVE:-}" = 1 ]
 then
     INTERACTIVITY_ARG='-it'
 fi
-# load variables starting with "C8YDM"
-docker run --env-file <(env | grep C8YDM) \
+
+if [ "${USE_CERTS:-}" = 1 ]
+then
+    docker run --env-file use_certs.env \
            --rm $INTERACTIVITY_ARG \
            -v /var/run/docker.sock:/var/run/docker.sock $DOCKER_IMAGE_NAME
+else
+    docker run --env-file <(env | grep C8YDM) \
+           --rm $INTERACTIVITY_ARG \
+           -v /var/run/docker.sock:/var/run/docker.sock $DOCKER_IMAGE_NAME
+fi
+
+

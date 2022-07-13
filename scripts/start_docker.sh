@@ -15,9 +15,9 @@ if [ -n "${C8YDM_MQTT_CERT_AUTH:-}" ] && [ $C8YDM_MQTT_CERT_AUTH = "true" ]; the
 
     ./scripts/upload_cert.sh \
     --tenant-domain $C8YDM_MQTT_URL \
-    --tenant-id $C8YDM_SECRET_C8Y__BOOTSTRAP__TENANT \
-    --username $C8YDM_SECRET_C8Y__BOOTSTRAP__USER \
-    --password $C8YDM_SECRET_C8Y__BOOTSTRAP__PASSWORD \
+    --tenant-id $CERT_TENANT \
+    --username $CERT_USER \
+    --password $CERT_PASSWORD \
     --cert-path "/root/.cumulocity/certs/$CA_NAME.pem" \
     --cert-name $CA_NAME
 
@@ -27,5 +27,5 @@ fi
 if which vncserver; then
     USER=root vncserver &
 fi
-
+sleep 5s
 service ssh start && exec c8ydm.start
