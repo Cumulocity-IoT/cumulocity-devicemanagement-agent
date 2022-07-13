@@ -28,7 +28,7 @@ class DockerWatcher:
 
     def get_stats(self):
             try:
-                subprocess.Popen(["docker"],stdout=subprocess.PIPE)
+                subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}}'"],stdout=subprocess.PIPE)
                 self.docker_active = True
             except Exception as os_ex:
                 if self.docker_active:
