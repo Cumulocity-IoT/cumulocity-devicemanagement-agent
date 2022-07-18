@@ -107,7 +107,7 @@ def start():
 
         containerId = None
         serial = None
-
+        
         if serial == None:
             logging.debug(f'Serial not proviced. Fetching from system...')
             try:
@@ -134,8 +134,8 @@ def start():
         logging.info(f'Serial: {serial}')
 
         credentials = config.getCredentials()
-        logging.debug('Credentials:')
-        logging.debug(credentials)
+        #logging.debug('Credentials:')
+        #logging.debug(credentials)
         agent = Agent(serial, path, config, str(path) + '/agent.pid', simulated)
         cert_auth = config.getBooleanValue('mqtt','cert_auth')
         logging.debug(f'cert_auth: {cert_auth}')

@@ -52,8 +52,8 @@ class RemoteAccessListener(Listener):
             Exception: Error when handling the operation
        """
         try:
-            #self.logger.debug(
-            #    f'Handling Cloud Remote Access operation: listener={__name__}, message={message}')
+            self.logger.debug(
+                f'Handling Cloud Remote Access operation: listener={__name__}, message={message}')
 
             if message.messageId == self.remote_access_default_template or message.messageId == self.remote_access_op_template:
                 self._set_executing()
@@ -72,14 +72,19 @@ class RemoteAccessListener(Listener):
         tcp_host = message.values[1]
         tcp_port = int(message.values[2])
         connection_key = message.values[3]
-
         config = self.agent.configuration
-        credentials = config.getCredentials()
-
-        token = self.agent.token
-        tenantuser = credentials[0]+'/'+ credentials[1]
-        password = credentials[2]
-
+        tenantuser = None
+        password = None
+        token = None
+        
+        if self.agent.token:
+            token = self.agent.token
+            self.logger.info(f'RAL Token received: {token}')
+        else:
+            credentials = config.getCredentials()
+            tenantuser = credentials[0]+'/'+ credentials[1]
+            password = credentials[2]
+        
         if token is None and tenantuser is None and password is None:
             raise WebSocketFailureException(
                 'OAuth Token or tenantuser and password must be provided!')
