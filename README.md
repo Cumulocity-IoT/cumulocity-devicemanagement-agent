@@ -125,9 +125,9 @@ and to stop run
 |     Device Certificates                      |     Yes                |
 |     Device Bootstrapping & Registration      |     Yes                |
 |     Software Updates (apt)                   |     Yes                |
-|     Firmware Updates                         |     Yes                |
+|     Firmware Updates (simulated only)        |     Yes                |
 |     Configuration Updates text-based         |     Yes                |
-|     Configuration Snapshots                  |     Yes                |
+|     Configuration file-based                 |     Yes                |
 |     Device Profiles                          |     Yes                |
 |     Network                                  |     Yes                |
 |     Device Metrics (CPU, Memory etc.)        |     Yes                |
@@ -138,6 +138,7 @@ and to stop run
 |     Hardware Metering (CPU, Memory, HDD)     |     Yes                |
 |     Raspberry PI SenseHAT                    |     Yes                |
 |     Docker Management                        |     Yes                |
+|     Connectivity (Mobile) Management         |     No                 |
 
 ## Raspberry PI & SenseHAT Support
 
