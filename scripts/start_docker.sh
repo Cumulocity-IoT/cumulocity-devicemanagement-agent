@@ -7,7 +7,7 @@ CERT_NAME="device-cert"
 
 if [ -n "${C8YDM_MQTT_CERT_AUTH:-}" ] && [ $C8YDM_MQTT_CERT_AUTH = "true" ]; then
     # use container id as serial if not manual provided
-    if [[ -z "${C8YDM_AGENT_DEVICE__ID}" ]]; then
+    if [ -n "${C8YDM_AGENT_DEVICE__ID}" ]; then
         C8YDM_AGENT_DEVICE__ID=$HOSTNAME
         export C8YDM_AGENT_DEVICE__ID=$HOSTNAME
     fi
