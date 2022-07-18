@@ -52,8 +52,8 @@ class RemoteAccessListener(Listener):
             Exception: Error when handling the operation
        """
         try:
-            self.logger.debug(
-                f'Handling Cloud Remote Access operation: listener={__name__}, message={message}')
+            #self.logger.debug(
+            #    f'Handling Cloud Remote Access operation: listener={__name__}, message={message}')
 
             if message.messageId == self.remote_access_default_template or message.messageId == self.remote_access_op_template:
                 self._set_executing()
@@ -76,10 +76,10 @@ class RemoteAccessListener(Listener):
         tenantuser = None
         password = None
         token = None
-        
+
         if self.agent.token:
             token = self.agent.token
-            self.logger.info(f'RAL Token received: {token}')
+            #self.logger.info(f'RAL Token received: {token}')
         else:
             credentials = config.getCredentials()
             tenantuser = credentials[0]+'/'+ credentials[1]
