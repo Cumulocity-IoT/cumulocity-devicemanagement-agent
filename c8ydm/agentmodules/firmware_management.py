@@ -127,5 +127,5 @@ class FirmwareManagement(Listener, Initializer):
         dist_version = self.firmware_manager.get_dist_version()
         firmware_name = dist_name + "-" + dist_version
         firmware_version = current_kernel_version
-        firmware_msg = SmartRESTMessage('s/us', '115', [firmware_name, firmware_version, ''])
+        firmware_msg = SmartRESTMessage('s/us', '115', [firmware_name, firmware_version, 'None'])
         return [firmware_msg]
