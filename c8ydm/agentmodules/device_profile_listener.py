@@ -51,7 +51,7 @@ class DeviceProfileListener(Listener):
                                      for x in range(0, len(messages), 4)]
         self.logger.info(f'Software will be changed: {softwareToInstall}')
         errors = self.apt_package_manager.install_software(
-                    softwareToInstall, True)
+                    softwareToInstall, True, False)
         return errors
     
     def _process_device_profile_msg(self, message):

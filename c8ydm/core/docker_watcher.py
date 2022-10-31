@@ -28,7 +28,7 @@ class DockerWatcher:
 
     def get_stats(self):
             try:
-                subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}}'"],stdout=subprocess.PIPE)
+                subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}'"],stdout=subprocess.PIPE)
                 self.docker_active = True
             except Exception as os_ex:
                 if self.docker_active:
@@ -37,7 +37,7 @@ class DockerWatcher:
                 #self.logger.info(f'Docker Status {self.docker_active}')
             if self.docker_active:
                 try:
-                    rawStats = subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}}'"],stdout=subprocess.PIPE)
+                    rawStats = subprocess.Popen(["docker", "stats", "--no-stream","-a", "--format", "'{{.Container}};{{.Name}};{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}'"],stdout=subprocess.PIPE)
                     list = rawStats.stdout.read().decode('utf-8').split('\n')
                     a = []
                     for i in list:
@@ -58,12 +58,14 @@ class DockerWatcher:
                                 dict["cpu"] = value.replace('%','')
                             if counter == 3:
                                 dict["memory"] = value.replace('%','').replace("'","")
+                            if counter == 4:
+                                dict["memory_perc"] = value.replace('%','').replace("'","")
                         a.append(dict)
                     a = a[:-1]
                     payload = {}
                     payload['c8y_Docker'] = a
                     self.logger.debug('The following Docker stats where found: %s'% (str(payload)))
-                    return json.dumps(payload)
+                    return payload
                 except Exception as e:
                     self.logger.error('The following error occured: %s'% (str(e)))
             else:
