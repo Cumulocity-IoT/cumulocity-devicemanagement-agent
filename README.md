@@ -139,6 +139,8 @@ and to stop run
 |     Raspberry PI SenseHAT                    |     Yes                |
 |     Docker Management                        |     Yes                |
 |     Connectivity (Mobile) Management         |     No                 |
+|     Adv. Software Management                 |     Yes (apt)          |
+|     Service Management                       |     Yes (docker)       |  
 
 ## Raspberry PI & SenseHAT Support
 
