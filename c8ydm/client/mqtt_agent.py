@@ -314,7 +314,7 @@ class Agent():
             messageParts = decoded.split(',')
             message = SmartRESTMessage(
                 msg.topic, messageParts[0], messageParts[1:])
-            self.logger.debug('Received: topic=%s msg=%s',
+            self.logger.info('Received: topic=%s msg=%s',
                           message.topic, message.getMessage())
             if message.messageId == '71':
                 self.token = message.values[0]

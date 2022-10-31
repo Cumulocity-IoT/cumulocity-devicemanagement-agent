@@ -29,7 +29,10 @@ else:
 
 class AptPackageManager:
     logger = logging.getLogger(__name__)
-
+    
+    """
+    DEPRECATED - will probably hit the 16 KB payload limit size of MQTT when used.
+    """
     def getInstalledSoftware(self, with_update):
         allInstalled = []
         if apt:
@@ -44,17 +47,22 @@ class AptPackageManager:
                 if (pkg.is_installed and not pkg.shortname.startswith('lib') and not pkg.shortname.startswith('python')):
                     allInstalled.append(pkg.shortname)
                     allInstalled.append(pkg.installed.version)
-                    allInstalled.append('')
+                    allInstalled.append('apt')
+                    #FIXME Bug in 10.14 Cumulocity that URL must not be null and is mandatory
+                    allInstalled.append('test')
 
             cache.close()
 
-        return SmartRESTMessage('s/us', '116', allInstalled)
-    
+        return [SmartRESTMessage('s/us', '140', allInstalled)]
+
+    """
+    Returns the software list as JSON to be sent to the new Adv. software management microservice
+    """
     def get_installed_software_json(self, with_update):
         software_list = []
-        all_installed = {
-            "c8y_SoftwareList": software_list
-        }
+        #all_installed = {
+        #    "c8y_SoftwareList": software_list
+        #}
         if apt:
             cache = apt.cache.Cache()
             if with_update:
@@ -64,72 +72,118 @@ class AptPackageManager:
             cache.open()
             for pkg in cache:
                 if (pkg.is_installed):
+                    #FIXME Bug in 10.14 Cumulocity that URL must not be null and is mandatory
                     software = {
                         "name": pkg.shortname,
 			            "version": pkg.installed.version,
-			            "url": ""
+                        "softwareType": "apt",
+			            "url": "test"
                     }
                     software_list.append(software)
             cache.close()
-        return all_installed
+        return software_list
 
     
-    def install_software(self, software_to_install, with_update):
+    def install_software(self, software_to_install, with_update, with_type):
         errors = []
-        if apt:
-            cache = apt.cache.Cache()
-            if with_update:
-                self.logger.info('Starting apt update....')
-                cache.update()
-                self.logger.info('apt update finished!')
-            cache.open()
-            for software in software_to_install:
-                name = software[0]
-                version = software[1]
-                # url = software[2]
-                action = software[3]
-                pkg = cache[name]
-                if pkg is None:
-                    errors.append('No Software found with name '+ name)
-                else:
-                    if action == 'install':
-                        if version == 'latest':
-                            self.logger.info('install ' + pkg.shortname + '=latest')
-                            pkg.mark_install()
-                        else:
-                            self.logger.info(
-                                'install ' + pkg.shortname + '=' + version)
+        software_installed = []
+        try:
+            if apt:
+                cache = apt.cache.Cache()
+                if with_update:
+                    self.logger.info('Starting apt update....')
+                    cache.update()
+                    self.logger.info('apt update finished!')
+                cache.open()
+                for software in software_to_install:
+                
+                    if with_type:
+                        name = software[0]
+                        version = software[1]
+                        #type = software[2]
+                        #url = software[3]
+                        action = software[4]
+                    else:
+                        name = software[0]
+                        version = software[1]
+                        #url = software[2]
+                        action = software[3]
+                    pkg = cache[name]
+                    if pkg is None:
+                        errors.append('No Software found with name '+ name)
+                    else:
+                        if action == 'install':
+                            if version == 'latest':
+                                self.logger.info('install ' + pkg.shortname + '=latest')
+                                pkg_version = pkg.versions[0].version
+                                pkg.mark_install()
+                                software = {
+                                    "name": pkg.shortname,
+                                    "version": pkg_version,
+                                    "type": "apt",
+                                    "url": "",
+                                    "action": "install"
+                                }
+                                software_installed.append(software)
+                            else:
+                                self.logger.info(
+                                    'install ' + pkg.shortname + '=' + version)
+                                candidate = pkg.versions.get(version)
+                                if candidate == None:
+                                    errors.append('Version '+ version +' not available in Repo!')
+                                else:
+                                    pkg.candidate = candidate
+                                    pkg.mark_install()
+                                    software = {
+                                        "name": pkg.shortname,
+                                        "version": version,
+                                        "type": "apt",
+                                        "url": "",
+                                        "action": "install"
+                                    }
+                                    software_installed.append(software)
+                        # Software currently installed in the same version
+                        if action == 'update' and pkg.is_installed and pkg.installed.version == version:
+                            # no action needed
+                            self.logger.debug('existing ' + pkg.shortname +
+                                            '=' + pkg.installed.version)
+                        if action == 'update' and pkg.is_installed and pkg.installed.version != version:
+                            self.logger.info('install ' + pkg.shortname + '=' + version)
                             candidate = pkg.versions.get(version)
                             if candidate == None:
-                                errors.append('Version '+ version +' not available in Repo!')
+                                    errors.append('Version '+ version +' not available in Repo!')
                             else:
                                 pkg.candidate = candidate
                                 pkg.mark_install()
-                    # Software currently installed in the same version
-                    if action == 'update' and pkg.is_installed and pkg.installed.version == version:
-                        # no action needed
-                        self.logger.debug('existing ' + pkg.shortname +
-                                        '=' + pkg.installed.version)
-                    if action == 'update' and pkg.is_installed and pkg.installed.version != version:
-                        self.logger.info('install ' + pkg.shortname + '=' + version)
-                        candidate = pkg.versions.get(version)
-                        if candidate == None:
-                                errors.append('Version '+ version +' not available in Repo!')
-                        else:
-                            pkg.candidate = candidate
-                            pkg.mark_install()
-                    if action == 'delete' and pkg.is_installed:
-                        self.logger.info('delete ' + pkg.shortname +
-                                        '=' + pkg.installed.version)
-                        pkg.mark_delete()
-            try:
-                self.logger.info('Starting apt install/removal of Software..')
-                cache.commit()
-                self.logger.info("Install/Removal of Software finished!")
-            except Exception as e:
-                self.logger.error(e)
+                                software = {
+                                        "name": pkg.shortname,
+                                        "version": version,
+                                        "type": "apt",
+                                        "url": "",
+                                        "action": "install"
+                                    }
+                                software_installed.append(software)
+                        if action == 'delete' and pkg.installed.version == version and pkg.is_installed:
+                            self.logger.info('delete ' + pkg.shortname +
+                                            '=' + pkg.installed.version)
+                            pkg.mark_delete()
+                            software = {
+                                        "name": pkg.shortname,
+                                        "version": pkg.installed.version,
+                                        "type": "apt",
+                                        "url": "",
+                                        "action": "delete"
+                                    }
+                            software_installed.append(software)
+                
+                    self.logger.info('Starting apt install/removal of Software..')
+                    cache.commit()
+                    self.logger.info("Install/Removal of Software finished!")
+        except Exception as e:
+            self.logger.error(e)
+            errors.append(e)
 
-        return errors
+        return [errors, software_installed]
 
     """ Old Deprecated Version of Software Updates """
     def installSoftware(self, toBeInstalled, with_update):

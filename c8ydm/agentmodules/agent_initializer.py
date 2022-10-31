@@ -19,6 +19,7 @@ limitations under the License.
 """
 import logging
 import time
+import pkg_resources
 from c8ydm.framework.modulebase import Initializer
 from c8ydm.framework.smartrest import SmartRESTMessage
 
@@ -30,6 +31,10 @@ class AgentInitializer(Initializer):
 
     def getMessages(self):
         self.logger.info(f'Agent Initializer called...')
+        # Will be available with 1014.28.0
+        version = pkg_resources.require("c8ydm")[0].version
+        #agent_msg = SmartRESTMessage('s/us', '122', ['DM Reference Agent',version,'https://github.com/SoftwareAG/cumulocity-devicemanagement-agent','Open Source'])
+        
         agent_msg = SmartRESTMessage(
-            's/uc/'+self.xid, self.agent_message_id, [self.serial, 'DM Reference Agent', '0.2', ''])
+            's/uc/'+self.xid, self.agent_message_id, [self.serial, 'DM Reference Agent', version, ''])
         return [agent_msg]

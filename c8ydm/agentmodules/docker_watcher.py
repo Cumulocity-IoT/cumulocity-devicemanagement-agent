@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging, time
+import logging, time, json
 import subprocess
 from c8ydm.framework.modulebase import Sensor, Initializer, Listener
 from c8ydm.framework.smartrest import SmartRESTMessage
@@ -35,17 +35,43 @@ class DockerSensor(Sensor, Initializer, Listener):
         if payload is not None:
             if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
                 internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-                self.agent.rest_client.update_managed_object(internal_id, payload)
-        return []
+                self.agent.rest_client.update_managed_object(internal_id, json.dumps(payload))
+            service_msgs = []
+            for container in payload['c8y_Docker']:
+                container_id = f'docker_{container["containerID"]}'
+                container_name = container['name']
+                container_status = container['status']
+                container_cpu = container['cpu']
+                container_memory = container['memory_perc']
+                #self.logger.info(f'Container found with name {container_name} id {container_id} status {container_status} cpu {container_cpu} memory {container_memory}')
+                update_msg = SmartRESTMessage(f's/us/{container_id}', '104', [container_status])
+                service_msgs.append(update_msg)
+                cpu_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'cpu', container_cpu, '%'])
+                service_msgs.append(cpu_msg)
+                memory_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'memory', container_memory, '%'])
+                service_msgs.append(memory_msg)
+                
+        return service_msgs
 
     def getMessages(self):
         self.logger.info(f'Docker Initializer called...')
         payload = self.docker_watcher.get_stats()
+        
+
         if payload is not None:
+            
             if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
                 internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-                self.agent.rest_client.update_managed_object(internal_id, payload)
-        return []
+                self.agent.rest_client.update_managed_object(internal_id, json.dumps(payload))
+            service_msgs = []
+            for container in payload['c8y_Docker']:
+                container_id = f'docker_{container["containerID"]}'
+                container_name = container['name']
+                container_status = container['status']
+                #self.logger.info(f'Container found with name {container_name} id {container_id} status {container_status}')
+                msg = SmartRESTMessage('s/us', '102', [container_id, 'docker', container_name, container_status])
+                service_msgs.append(msg)
+        return service_msgs
     
     def _set_executing(self):
         executing = SmartRESTMessage('s/us', '501', [self.fragment])
