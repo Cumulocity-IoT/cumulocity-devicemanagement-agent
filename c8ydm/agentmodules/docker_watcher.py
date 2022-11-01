@@ -38,18 +38,21 @@ class DockerSensor(Sensor, Initializer, Listener):
                 self.agent.rest_client.update_managed_object(internal_id, json.dumps(payload))
             service_msgs = []
             for container in payload['c8y_Docker']:
-                container_id = f'docker_{container["containerID"]}'
+                container_id = f'{self.serial}_{container["containerID"]}'
                 container_name = container['name']
                 container_status = container['status']
                 container_cpu = container['cpu']
                 container_memory = container['memory_perc']
                 #self.logger.info(f'Container found with name {container_name} id {container_id} status {container_status} cpu {container_cpu} memory {container_memory}')
-                update_msg = SmartRESTMessage(f's/us/{container_id}', '104', [container_status])
-                service_msgs.append(update_msg)
-                cpu_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'cpu', container_cpu, '%'])
-                service_msgs.append(cpu_msg)
-                memory_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'memory', container_memory, '%'])
-                service_msgs.append(memory_msg)
+                if container_status:
+                    update_msg = SmartRESTMessage(f's/us/{container_id}', '104', [container_status])
+                    service_msgs.append(update_msg)
+                if container_cpu and isinstance(container_cpu, float):    
+                    cpu_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'cpu', container_cpu, '%'])
+                    service_msgs.append(cpu_msg)
+                if container_memory and isinstance(container_memory, float):   
+                    memory_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'memory', container_memory, '%'])
+                    service_msgs.append(memory_msg)
                 
         return service_msgs
 
@@ -65,12 +68,13 @@ class DockerSensor(Sensor, Initializer, Listener):
                 self.agent.rest_client.update_managed_object(internal_id, json.dumps(payload))
             service_msgs = []
             for container in payload['c8y_Docker']:
-                container_id = f'docker_{container["containerID"]}'
+                container_id = f'{self.serial}_{container["containerID"]}'
                 container_name = container['name']
                 container_status = container['status']
                 #self.logger.info(f'Container found with name {container_name} id {container_id} status {container_status}')
-                msg = SmartRESTMessage('s/us', '102', [container_id, 'docker', container_name, container_status])
-                service_msgs.append(msg)
+                if container_status:
+                    msg = SmartRESTMessage('s/us', '102', [container_id, 'docker', container_name, container_status])
+                    service_msgs.append(msg)
         return service_msgs
     
     def _set_executing(self):
