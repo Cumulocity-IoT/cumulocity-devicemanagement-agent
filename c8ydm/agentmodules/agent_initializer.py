@@ -33,8 +33,8 @@ class AgentInitializer(Initializer):
         self.logger.info(f'Agent Initializer called...')
         # Will be available with 1014.28.0
         version = pkg_resources.require("c8ydm")[0].version
-        #agent_msg = SmartRESTMessage('s/us', '122', ['DM Reference Agent',version,'https://github.com/SoftwareAG/cumulocity-devicemanagement-agent','Open Source'])
+        agent_msg = SmartRESTMessage('s/us', '122', ['DM Reference Agent',version,'https://github.com/SoftwareAG/cumulocity-devicemanagement-agent','Open Source'])
         
-        agent_msg = SmartRESTMessage(
-            's/uc/'+self.xid, self.agent_message_id, [self.serial, 'DM Reference Agent', version, ''])
+        #agent_msg = SmartRESTMessage(
+        #    's/uc/'+self.xid, self.agent_message_id, [self.serial, 'DM Reference Agent', version, ''])
         return [agent_msg]
