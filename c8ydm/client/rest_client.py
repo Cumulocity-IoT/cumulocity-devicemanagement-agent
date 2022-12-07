@@ -197,7 +197,7 @@ class RestClient():
             self.logger.error('The following error occured: %s' % (str(ex)))
             return None
 
-    def upload_event_logfile(self, mo_id, payload, file):
+    def upload_event_logfile(self, mo_id, file):
         #self.logger.info('Update of managed Object')
         try:
             event_id = self.create_logfile_event(mo_id)
@@ -209,7 +209,7 @@ class RestClient():
             headers['Accept'] = 'application/json'
             self.logger.debug(f'Sending Request to url {url}')
             response = requests.request(
-                "POST", url, headers=headers, data=payload, files=file)
+                "POST", url, headers=headers, files=file)
             self.logger.debug('Response from request: ' + str(response.text))
             self.logger.debug(
                 'Response from request with code : ' + str(response.status_code))
@@ -225,7 +225,7 @@ class RestClient():
         except Exception as e:
             self.logger.error('The following error occured: %s' % (str(e)))
     
-    def upload_event_configfile(self, mo_id, payload, file, configtype, path):
+    def upload_event_configfile(self, mo_id, file, configtype, path):
         #self.logger.info('Update of managed Object')
         try:
             event_id = self.create_configfile_event(mo_id,configtype,path)
@@ -237,7 +237,7 @@ class RestClient():
             headers['Accept'] = 'application/json'
             self.logger.debug(f'Sending Request to url {url}')
             response = requests.request(
-                "POST", url, headers=headers, data=payload, files=file)
+                "POST", url, headers=headers, files=file)
             self.logger.debug('Response from request: ' + str(response.text))
             self.logger.debug(
                 'Response from request with code : ' + str(response.status_code))
