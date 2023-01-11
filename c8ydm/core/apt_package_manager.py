@@ -163,25 +163,31 @@ class AptPackageManager:
                                         "action": "install"
                                     }
                                 software_installed.append(software)
-                        if action == 'delete' and pkg.installed.version == version and pkg.is_installed:
-                            self.logger.info('delete ' + pkg.shortname +
-                                            '=' + pkg.installed.version)
-                            pkg.mark_delete()
-                            software = {
-                                        "name": pkg.shortname,
-                                        "version": pkg.installed.version,
-                                        "type": "apt",
-                                        "url": "",
-                                        "action": "delete"
-                                    }
-                            software_installed.append(software)
+
+                        if action == 'delete':
+                            if not pkg.is_installed:
+                                errors.append(f'Package {name} is not installed!')
+                            elif pkg.is_installed and pkg.installed.version != version:
+                                errors.append(f'Package {name} with version {version} is not installed. Installed version is {pkg.installed.version}! ')
+                            else:
+                                self.logger.info('delete ' + pkg.shortname +
+                                                '=' + pkg.installed.version)
+                                pkg.mark_delete()
+                                software = {
+                                            "name": pkg.shortname,
+                                            "version": pkg.installed.version,
+                                            "type": "apt",
+                                            "url": "",
+                                            "action": "delete"
+                                        }
+                                software_installed.append(software)
                 
                     self.logger.info('Starting apt install/removal of Software..')
                     cache.commit()
                     self.logger.info("Install/Removal of Software finished!")
         except Exception as e:
             self.logger.error(e)
-            errors.append(e)
+            errors.append(str(e))
 
         return [errors, software_installed]
 
