@@ -32,11 +32,12 @@ class DockerSensor(Sensor, Initializer, Listener):
     def getSensorMessages(self):
         #self.logger.info(f'Docker Update Loop called...')
         payload = self.docker_watcher.get_stats()
+        service_msgs = []
         if payload is not None:
             if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
                 internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
                 self.agent.rest_client.update_managed_object(internal_id, json.dumps(payload))
-            service_msgs = []
+            
             for container in payload['c8y_Docker']:
                 try:
                     container_id = f'{self.serial}_{container["containerID"]}'
