@@ -142,5 +142,5 @@ class LogfileInitializer(Initializer, Listener):
                 f.close()
                 self.logger.debug("logfilerequest handled")
         except Exception as e:
-            self._set_failed(e)
+            self._set_failed(str(e))
 
