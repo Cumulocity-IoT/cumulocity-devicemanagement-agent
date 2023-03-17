@@ -9,6 +9,10 @@ The docker version is mainly used to simulate a device including a SSH + VNC ser
 
 The native version is mainly used when connecting physical devices with real capabilities and sensors attached.
 
+Here is a detailed ["How-To" guide](
+https://tech.forums.softwareag.com/t/getting-started-with-cumulocity-iot-device-management/256401) which provides a step-by-step instruction to get the agent running & to explore the device management features of Cumulocity IoT
+
+
 ## Docker Quick Start
 To quickly run the agent you can use the [prebuild docker image](https://hub.docker.com/repository/docker/switschel/c8ydm).
 
