@@ -33,6 +33,7 @@ class DockerSensor(Sensor, Initializer, Listener):
         #self.logger.info(f'Docker Update Loop called...')
         payload = self.docker_watcher.get_stats()
         service_msgs = []
+        
         if payload is not None:
             if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
                 internal_id = self.agent.rest_client.get_internal_id(self.agent.serial)
@@ -40,6 +41,7 @@ class DockerSensor(Sensor, Initializer, Listener):
             
             for container in payload['c8y_Docker']:
                 try:
+                    service_measurements = ['ResourceUsage','']
                     container_id = f'{self.serial}_{container["containerID"]}'
                     container_name = container['name']
                     container_status = container['status']
@@ -56,13 +58,13 @@ class DockerSensor(Sensor, Initializer, Listener):
                         update_msg = SmartRESTMessage(f's/us/{container_id}', '104', [status])
                         service_msgs.append(update_msg)
                     if container_cpu:
-                        cpu_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'cpu', container_cpu, '%'])
-                        service_msgs.append(cpu_msg)
+                        service_measurements.extend(['ResourceUsage', 'cpu', container_cpu, '%'])
                     if container_memory:
-                        memory_msg = SmartRESTMessage(f's/us/{container_id}', '200', ['ResourceUsage', 'memory', container_memory, '%'])
-                        service_msgs.append(memory_msg)
+                        service_measurements.extend(['ResourceUsage', 'memory', container_memory, '%'])
+                    if len(service_measurements) > 2:
+                        service_msgs.append(SmartRESTMessage(f's/us/{container_id}', '201', service_measurements))
                 except Exception as ex:
-                    self.logger(f'Error in Docker Watcher Sensor Messages:  {ex}')
+                    self.logger.error(f'Error in Docker Watcher Sensor Messages:  {ex}')
                 
         return service_msgs
 

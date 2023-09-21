@@ -231,10 +231,12 @@ class SoftwareManager(Listener, Initializer):
             self.agent.publishMessage(failed)
 
     def getSupportedOperations(self):
-        if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
-            supported_sw_types = { 'c8y_SupportedSoftwareTypes': ['apt']}
-            mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
-            self.agent.rest_client.update_managed_object(mo_id, json.dumps(supported_sw_types))
+        self.agent.publishMessage(SmartRESTMessage('s/us', '143', ['apt']))
+        # Deprecated since 1017
+        # if self.agent.token_received.wait(timeout=self.agent.refresh_token_interval):
+        #    supported_sw_types = { 'c8y_SupportedSoftwareTypes': ['apt']}
+        #    mo_id = self.agent.rest_client.get_internal_id(self.agent.serial)
+        #    self.agent.rest_client.update_managed_object(mo_id, json.dumps(supported_sw_types))
         return ['c8y_SoftwareUpdate', 'c8y_SoftwareList']
 
     def getSupportedTemplates(self):

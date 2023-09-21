@@ -40,14 +40,15 @@ class DeviceSensor(Sensor, Initializer):
             self.logger.exception(f'Error in DeviceSensor getMessages: {e}', e)
     
     def sendStats(self):
-        self.stats = []
+        stats = ['c8y_deviceStats','']
+        #201,KamstrupA220Reading,2022-03-19T12:03:27.845Z,c8y_SinglePhaseEnergyMeasurement,A+:1,1234,kWh,c8y_SinglePhaseEnergyMeasurement,A-:1,2345,kWh,c8y_ThreePhaseEnergyMeasurement,A+:1,123,kWh,c8y_ThreePhaseEnergyMeasurement,A+:2,234,kWh,c8y_ThreePhaseEnergyMeasurement,A+:3,345,kWh
         for key,value in self._getCPU().items():
-            self.stats.append(SmartRESTMessage('s/us', '200', ['cpu', key, value]))
+            stats.extend(['cpu', key, value, '' ])
         for key,value in self._getDisk().items():
-            self.stats.append(SmartRESTMessage('s/us', '200', ['disk', key, value]))
+            stats.extend(['disk', key, value, '' ])
         for key,value in self._getMemory().items():
-            self.stats.append(SmartRESTMessage('s/us', '200', ['memory', key, value]))
-        return self.stats
+            stats.extend(['memory', key, value, '' ])
+        return [SmartRESTMessage('s/us', '201', stats)]
     
     def _getCPU(self):
         return self.DeviceStats.getCPUStats() 
