@@ -28,7 +28,7 @@ if [ -n "${C8YDM_MQTT_CERT_AUTH:-}" ] && [ $C8YDM_MQTT_CERT_AUTH = "true" ]; the
 fi
 
 if which vncserver; then
-    USER=root vncserver &
+    USER=root vncserver :1 &
 fi
 sleep 5s
 service ssh start && exec c8ydm.start
