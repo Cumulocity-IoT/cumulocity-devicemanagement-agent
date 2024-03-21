@@ -1,3 +1,8 @@
+Deprecation notice
+---
+[thin-edge.io](thin-edge.io) made huge progress and supports much more functionality as the dm-agent. Please consider using thin-edge.io instead using the dm-agent! It will be no longer maintained.
+---
+
 # Cumulocity IoT Device Management Reference Agent
 Cumulocity Device Management (DM) Reference Agent written in Python3 to demonstrate most of the [Device Management Capabilities](https://cumulocity.com/guides/users-guide/device-management/) of [Cumulocity IoT](https://www.softwareag.cloud/site/product/cumulocity-iot.html)
 
