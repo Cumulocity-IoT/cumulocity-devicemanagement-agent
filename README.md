@@ -1,6 +1,6 @@
 Deprecation notice
 ---
-[thin-edge.io](thin-edge.io) made huge progress and supports much more functionality as the dm-agent. Please consider using thin-edge.io instead using the dm-agent! It will be no longer maintained.
+[thin-edge.io](https://thin-edge.io) made huge progress and supports much more functionality as the dm-agent. Please consider using thin-edge.io instead using the dm-agent! It will be no longer maintained.
 ---
 
 # Cumulocity IoT Device Management Reference Agent
